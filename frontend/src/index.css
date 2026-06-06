@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: "Inter", sans-serif;
+        background-color: #fffbf7;
+        color: #1a1a1a;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: "Playfair Display", serif;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply bg-gradient-to-r from-gold-500 to-gold-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+
+    .btn-secondary {
+        @apply border-2 border-gold-500 text-gold-700 font-semibold py-3 px-6 rounded-xl hover:bg-gold-50 transition-all duration-300 active:scale-95;
+    }
+
+    .btn-danger {
+        @apply bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition-all duration-200 active:scale-95;
+    }
+
+    .input-field {
+        @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:border-gold-400 focus:ring-2 focus:ring-gold-100 focus:outline-none transition-all duration-200 text-gray-700 placeholder-gray-400;
+    }
+
+    .card {
+        @apply bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden;
+    }
+
+    .badge {
+        @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    }
+
+    .glass {
+        @apply bg-white/80 backdrop-blur-md border border-white/20;
+    }
+
+    .shimmer {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f9f5f0;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #d4a574;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #b8860b;
+}
