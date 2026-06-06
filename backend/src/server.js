@@ -2,6 +2,7 @@ import app from "./app.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { seedAdmin } from "./utils/seedAdmin.js";
+import { setIO } from "./utils/socket.js";
 
 import http from "http";
 import { Server } from "socket.io";
@@ -14,11 +15,14 @@ const PORT = process.env.PORT || 5002;
 const server = http.createServer(app);
 
 // socket server
-export const io = new Server(server, {
+const io = new Server(server, {
   cors: {
     origin: "*",
   },
 });
+
+// Share io instance globally (avoids circular dependency)
+setIO(io);
 
 // socket connection
 io.on("connection", (socket) => {

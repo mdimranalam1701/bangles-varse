@@ -149,58 +149,94 @@ export default function Checkout() {
         <div className="max-w-2xl mx-auto px-4 py-8">
             <button
                 onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-gray-500 hover:text-gold-600 mb-6 transition-colors"
+                className="flex items-center gap-2 text-gray-500 hover:text-gold-600 mb-6 transition-colors group"
             >
-                <FiArrowLeft /> Back to Cart
+                <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" /> Back to Cart
             </button>
 
             <h1 className="text-3xl font-serif font-bold text-gray-900 mb-8">Checkout</h1>
 
+            {/* Steps indicator */}
+            <div className="flex items-center gap-3 mb-8">
+                <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 bg-gold-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                    <span className="text-sm font-semibold text-gold-700">Review</span>
+                </div>
+                <div className="flex-1 h-0.5 bg-gold-200 rounded-full" />
+                <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 bg-gold-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                    <span className="text-sm font-semibold text-gold-700">Payment</span>
+                </div>
+                <div className="flex-1 h-0.5 bg-gray-200 rounded-full" />
+                <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                    <span className="text-sm font-medium text-gray-400">Confirm</span>
+                </div>
+            </div>
+
             {/* Order Items */}
-            <div className="card p-6 mb-6">
-                <h3 className="font-serif font-semibold text-gray-800 mb-4">Order Items</h3>
+            <div className="card p-6 mb-6 !shadow-lg !shadow-gold-100/20 border border-gold-100/30">
+                <h3 className="font-serif font-semibold text-lg text-gray-800 mb-5 flex items-center gap-2">
+                    <span className="w-7 h-7 bg-gold-100 rounded-lg flex items-center justify-center text-gold-600 text-sm">📦</span>
+                    Order Items
+                </h3>
                 <div className="space-y-3">
                     {items.map((item) => (
-                        <div key={item._id || item.product?._id} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                        <div key={item._id || item.product?._id} className="flex justify-between items-center py-3 border-b border-gold-50 last:border-0">
                             <div>
                                 <p className="font-medium text-gray-700">{item.product?.name}</p>
                                 <p className="text-sm text-gray-400">Qty: {item.quantity}</p>
                             </div>
-                            <PriceTag amount={(item.product?.price || 0) * item.quantity} />
+                            <PriceTag amount={(item.product?.price || 0) * item.quantity} className="font-bold" />
                         </div>
                     ))}
                 </div>
-                <div className="border-t border-gray-100 mt-4 pt-4 flex justify-between">
-                    <span className="font-semibold text-lg">Total</span>
-                    <PriceTag amount={total} className="text-xl" />
+                <div className="border-t border-gold-100 mt-4 pt-4 flex justify-between items-center">
+                    <span className="font-bold text-lg text-gray-800">Total</span>
+                    <PriceTag amount={total} className="text-2xl" />
                 </div>
             </div>
 
             {/* Payment Method */}
-            <div className="card p-6 mb-6">
-                <h3 className="font-serif font-semibold text-gray-800 mb-4">Payment Method</h3>
+            <div className="card p-6 mb-6 !shadow-lg !shadow-gold-100/20 border border-gold-100/30">
+                <h3 className="font-serif font-semibold text-lg text-gray-800 mb-5 flex items-center gap-2">
+                    <span className="w-7 h-7 bg-gold-100 rounded-lg flex items-center justify-center text-gold-600 text-sm">💳</span>
+                    Payment Method
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <button
                         onClick={() => setPaymentType("cash")}
-                        className={`p-4 rounded-xl border-2 text-center transition-all ${paymentType === "cash"
-                            ? "border-gold-500 bg-gold-50"
-                            : "border-gray-200 hover:border-gold-300"
-                            }`}
+                        className={`relative p-5 rounded-xl border-2 text-center transition-all duration-300 ${
+                            paymentType === "cash"
+                                ? "border-gold-500 bg-gold-50 shadow-md shadow-gold-100/50"
+                                : "border-gray-200 hover:border-gold-300 hover:bg-gold-50/30"
+                        }`}
                     >
-                        <FiDollarSign size={24} className={`mx-auto mb-2 ${paymentType === "cash" ? "text-gold-600" : "text-gray-400"}`} />
-                        <span className={`font-medium ${paymentType === "cash" ? "text-gold-700" : "text-gray-600"}`}>
+                        {paymentType === "cash" && (
+                            <div className="absolute top-2 right-2 w-5 h-5 bg-gold-500 rounded-full flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                            </div>
+                        )}
+                        <FiDollarSign size={28} className={`mx-auto mb-2 ${paymentType === "cash" ? "text-gold-600" : "text-gray-400"}`} />
+                        <span className={`font-semibold ${paymentType === "cash" ? "text-gold-700" : "text-gray-600"}`}>
                             Cash on Delivery
                         </span>
                     </button>
                     <button
                         onClick={() => setPaymentType("credit")}
-                        className={`p-4 rounded-xl border-2 text-center transition-all ${paymentType === "credit"
-                            ? "border-gold-500 bg-gold-50"
-                            : "border-gray-200 hover:border-gold-300"
-                            }`}
+                        className={`relative p-5 rounded-xl border-2 text-center transition-all duration-300 ${
+                            paymentType === "credit"
+                                ? "border-gold-500 bg-gold-50 shadow-md shadow-gold-100/50"
+                                : "border-gray-200 hover:border-gold-300 hover:bg-gold-50/30"
+                        }`}
                     >
-                        <FiCreditCard size={24} className={`mx-auto mb-2 ${paymentType === "credit" ? "text-gold-600" : "text-gray-400"}`} />
-                        <span className={`font-medium ${paymentType === "credit" ? "text-gold-700" : "text-gray-600"}`}>
+                        {paymentType === "credit" && (
+                            <div className="absolute top-2 right-2 w-5 h-5 bg-gold-500 rounded-full flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                            </div>
+                        )}
+                        <FiCreditCard size={28} className={`mx-auto mb-2 ${paymentType === "credit" ? "text-gold-600" : "text-gray-400"}`} />
+                        <span className={`font-semibold ${paymentType === "credit" ? "text-gold-700" : "text-gray-600"}`}>
                             Pay Online
                         </span>
                     </button>
@@ -209,13 +245,19 @@ export default function Checkout() {
                             setPaymentType("buy_on_credit");
                             if (approvalStatus === null) checkApproval();
                         }}
-                        className={`p-4 rounded-xl border-2 text-center transition-all ${paymentType === "buy_on_credit"
-                            ? "border-gold-500 bg-gold-50"
-                            : "border-gray-200 hover:border-gold-300"
-                            }`}
+                        className={`relative p-5 rounded-xl border-2 text-center transition-all duration-300 ${
+                            paymentType === "buy_on_credit"
+                                ? "border-gold-500 bg-gold-50 shadow-md shadow-gold-100/50"
+                                : "border-gray-200 hover:border-gold-300 hover:bg-gold-50/30"
+                        }`}
                     >
-                        <FiClock size={24} className={`mx-auto mb-2 ${paymentType === "buy_on_credit" ? "text-gold-600" : "text-gray-400"}`} />
-                        <span className={`font-medium ${paymentType === "buy_on_credit" ? "text-gold-700" : "text-gray-600"}`}>
+                        {paymentType === "buy_on_credit" && (
+                            <div className="absolute top-2 right-2 w-5 h-5 bg-gold-500 rounded-full flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                            </div>
+                        )}
+                        <FiClock size={28} className={`mx-auto mb-2 ${paymentType === "buy_on_credit" ? "text-gold-600" : "text-gray-400"}`} />
+                        <span className={`font-semibold ${paymentType === "buy_on_credit" ? "text-gold-700" : "text-gray-600"}`}>
                             Buy on Credit
                         </span>
                     </button>

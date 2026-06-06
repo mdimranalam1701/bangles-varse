@@ -117,11 +117,11 @@ export default function Profile() {
             <h1 className="text-3xl font-serif font-bold text-gray-900 mb-8">My Profile</h1>
 
             {/* Profile Header Card */}
-            <div className="card p-6 mb-6">
+            <div className="card p-8 mb-6 !shadow-xl !shadow-gold-100/20 border border-gold-100/30 bg-gradient-to-br from-white to-gold-50/30">
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                     {/* Profile Picture with Edit Overlay */}
                     <div className="relative group">
-                        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-white text-4xl font-bold overflow-hidden ring-4 ring-gold-100 shadow-lg">
+                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-white text-5xl font-bold overflow-hidden ring-4 ring-gold-200/60 shadow-xl shadow-gold-200/40 group-hover:ring-gold-400 transition-all duration-300">
                             {form.profilePicture ? (
                                 <img src={form.profilePicture} alt="Profile" className="w-full h-full object-cover" />
                             ) : (
@@ -134,14 +134,14 @@ export default function Profile() {
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploading}
-                            className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center cursor-pointer"
+                            className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer"
                         >
                             {uploading ? (
                                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                             ) : (
                                 <div className="flex flex-col items-center gap-0.5">
-                                    <FiCamera size={22} className="text-white" />
-                                    <span className="text-[10px] text-white font-medium">Edit</span>
+                                    <FiCamera size={24} className="text-white" />
+                                    <span className="text-[10px] text-white font-semibold">Edit</span>
                                 </div>
                             )}
                         </button>
@@ -150,7 +150,7 @@ export default function Profile() {
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="absolute -bottom-1 -right-1 w-9 h-9 bg-gold-500 rounded-full flex items-center justify-center shadow-lg hover:bg-gold-600 transition-colors border-3 border-white"
+                            className="absolute -bottom-1 -right-1 w-10 h-10 bg-gradient-to-br from-gold-400 to-gold-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 border-2 border-white"
                         >
                             <FiEdit2 size={14} className="text-white" />
                         </button>
@@ -167,26 +167,29 @@ export default function Profile() {
 
                     {/* User Info */}
                     <div className="text-center sm:text-left flex-1">
-                        <h2 className="text-xl font-serif font-semibold text-gray-800">{profile?.name}</h2>
-                        <p className="text-gray-400 text-sm">{profile?.email}</p>
-                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
-                            <span className={`badge ${roleColor}`}>{roleLabel}</span>
+                        <h2 className="text-2xl font-serif font-bold text-gray-800">{profile?.name}</h2>
+                        <p className="text-gray-400 mt-1">{profile?.email}</p>
+                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
+                            <span className={`badge ${roleColor} shadow-sm`}>{roleLabel}</span>
                             {isOwner && (
-                                <span className={`badge ${profile?.isApproved ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                                <span className={`badge ${profile?.isApproved ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"} shadow-sm`}>
                                     {profile?.isApproved ? "✓ Approved" : "⏳ Pending"}
                                 </span>
                             )}
                         </div>
                         {isOwner && profile?.companyName && (
-                            <p className="text-sm text-gold-600 font-medium mt-1">🏢 {profile.companyName}</p>
+                            <p className="text-sm text-gold-600 font-semibold mt-2">🏢 {profile.companyName}</p>
                         )}
                     </div>
                 </div>
             </div>
 
             {/* Edit Form */}
-            <form onSubmit={handleSubmit} className="card p-6">
-                <h3 className="font-serif font-semibold text-lg text-gray-800 mb-6">Edit Profile</h3>
+            <form onSubmit={handleSubmit} className="card p-8 !shadow-lg !shadow-gold-100/10 border border-gold-100/20">
+                <h3 className="font-serif font-semibold text-xl text-gray-800 mb-8 flex items-center gap-2">
+                    <FiEdit2 size={18} className="text-gold-500" />
+                    Edit Profile
+                </h3>
 
                 <div className="grid sm:grid-cols-2 gap-5">
                     <div>

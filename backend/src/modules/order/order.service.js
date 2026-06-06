@@ -1,4 +1,4 @@
-import { io } from "../../server.js";
+import { getIO } from "../../utils/socket.js";
 import { Product } from "../product/product.model.js";
 import { Order } from "./order.model.js";
 import { addCredit } from "../credit/credit.service.js";
@@ -43,7 +43,8 @@ export const createOrder = async (data, userId) => {
     // Clear cart upon successful order
     await clearCart(userId);
 
-    io.emit("newOrder", {
+    const io = getIO();
+    io?.emit("newOrder", {
         message: `New order received worth ₹${totalAmount} `
     });
 
@@ -115,4 +116,140 @@ export const getOrderById = async (orderId, userId, role) => {
     }
 
     return order;
+};
+
+export const updateOrderStatus = async (orderId, status, note = "", userId = null) => {
+    const order = await Order.findById(orderId).populate("user", "name email");
+    if (!order) throw new Error("Order not found");
+
+    const validTransitions = {
+        pending: ["confirmed", "cancelled"],
+        confirmed: ["processing", "cancelled"],
+        processing: ["shipped", "cancelled"],
+        shipped: ["out_for_delivery", "returned"],
+        out_for_delivery: ["delivered", "returned"],
+        delivered: ["returned"],
+        cancelled: [],
+        returned: [],
+    };
+
+    if (!validTransitions[order.status]?.includes(status)) {
+        throw new Error(`Cannot change status from ${order.status} to ${status}`);
+    }
+
+    order.status = status;
+    order.statusHistory.push({ status, date: new Date(), note });
+
+    if (status === "delivered") {
+        order.deliveredAt = new Date();
+    }
+
+    await order.save();
+
+    const statusMessages = {
+        confirmed: "Your order has been confirmed! ✅",
+        processing: "Your order is being prepared 📦",
+        shipped: "Your order has been shipped! 🚚",
+        out_for_delivery: "Your order is out for delivery! 🛵",
+        delivered: "Your order has been delivered! 🎉",
+        cancelled: "Your order has been cancelled ❌",
+    };
+
+    if (statusMessages[status]) {
+        await Notification.create({
+            receiver: order.user._id,
+            title: `Order ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+            message: statusMessages[status],
+        });
+    }
+
+    return order;
+};
+
+export const requestReturn = async (orderId, userId, reason) => {
+    const order = await Order.findById(orderId);
+    if (!order) throw new Error("Order not found");
+    if (order.user.toString() !== userId.toString()) throw new Error("Not authorized");
+    if (!["delivered"].includes(order.status)) throw new Error("Can only return delivered orders");
+    if (order.returnRequest.status !== "none") throw new Error("Return already requested");
+
+    order.returnRequest = {
+        status: "requested",
+        reason,
+        requestedAt: new Date(),
+    };
+    await order.save();
+
+    const products = await Product.find({ _id: { $in: order.items.map(i => i.product) } });
+    const ownerIds = [...new Set(products.map(p => p.owner?.toString()).filter(Boolean))];
+    for (const ownerId of ownerIds) {
+        await Notification.create({
+            receiver: ownerId,
+            title: "Return Request 📋",
+            message: `A customer has requested a return for order #${orderId.toString().slice(-8).toUpperCase()}. Reason: ${reason}`,
+        });
+    }
+
+    return order;
+};
+
+export const handleReturnRequest = async (orderId, action, adminId) => {
+    const order = await Order.findById(orderId).populate("user", "name email");
+    if (!order) throw new Error("Order not found");
+    if (order.returnRequest.status !== "requested") throw new Error("No pending return request");
+
+    order.returnRequest.status = action;
+    order.returnRequest.resolvedAt = new Date();
+
+    if (action === "approved") {
+        order.status = "returned";
+        order.statusHistory.push({ status: "returned", date: new Date(), note: "Return approved" });
+    }
+
+    await order.save();
+
+    await Notification.create({
+        receiver: order.user._id,
+        title: `Return ${action === "approved" ? "Approved ✅" : "Rejected ❌"}`,
+        message: action === "approved"
+            ? "Your return request has been approved. Refund will be processed shortly."
+            : "Your return request has been rejected. Please contact support.",
+    });
+
+    return order;
+};
+
+export const updateTracking = async (orderId, trackingNumber, trackingUrl) => {
+    const order = await Order.findById(orderId);
+    if (!order) throw new Error("Order not found");
+
+    order.trackingNumber = trackingNumber;
+    order.trackingUrl = trackingUrl;
+    await order.save();
+
+    await Notification.create({
+        receiver: order.user,
+        title: "Tracking Info Updated 📦",
+        message: `Tracking number: ${trackingNumber}`,
+    });
+
+    return order;
+};
+
+export const reorder = async (orderId, userId) => {
+    const originalOrder = await Order.findById(orderId);
+    if (!originalOrder) throw new Error("Order not found");
+    if (originalOrder.user.toString() !== userId.toString()) throw new Error("Not authorized");
+
+    const { clearCart, addToCart } = await import("../cart/cart.service.js");
+    await clearCart(userId);
+
+    for (const item of originalOrder.items) {
+        const product = await Product.findById(item.product);
+        if (product && product.stock > 0) {
+            await addToCart(userId, item.product, item.quantity);
+        }
+    }
+
+    return { message: "Items added to cart" };
 };

@@ -53,25 +53,31 @@ export default function Products({ ownerFilter }) {
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
             {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-serif font-bold text-gray-900">
-                    {ownerFilter ? "🏪 My Shop" : `${category !== "All" ? category : "All"} Bangles`}
+            <div className="mb-10">
+                <h1 className="text-4xl font-serif font-bold text-gray-900">
+                    {ownerFilter ? "🏪 My Shop" : (
+                        <>
+                            {category !== "All" ? (
+                                <span className="bg-gradient-to-r from-gold-500 to-gold-700 bg-clip-text text-transparent">{category}</span>
+                            ) : "All"} Bangles
+                        </>
+                    )}
                 </h1>
-                <p className="text-gray-400 mt-1">
+                <p className="text-gray-400 mt-2 text-lg">
                     {ownerFilter ? "This is how customers see your shop" : "Discover our beautiful collection"}
                 </p>
             </div>
 
             {/* Search & Filter Bar */}
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <form onSubmit={handleSearch} className="flex-1 relative">
-                    <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <form onSubmit={handleSearch} className="flex-1 relative group">
+                    <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gold-500 transition-colors" size={18} />
                     <input
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search bangles..."
-                        className="input-field !pl-11"
+                        className="input-field !pl-11 !py-3.5 !shadow-sm"
                     />
                     {search && (
                         <button
@@ -85,23 +91,24 @@ export default function Products({ ownerFilter }) {
                 </form>
                 <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="btn-secondary flex items-center gap-2 sm:w-auto"
+                    className={`btn-secondary flex items-center gap-2 sm:w-auto ${showFilters ? "!bg-gold-50 !border-gold-400 !text-gold-700" : ""}`}
                 >
-                    <FiFilter size={16} />
-                    Filters
+                    <FiFilter size={16} className={showFilters ? "text-gold-600" : ""} />
+                    {showFilters ? "Hide Filters" : "Filters"}
                 </button>
             </div>
 
             {/* Category Pills */}
-            <div className={`flex flex-wrap gap-2 mb-8 ${showFilters ? "block" : "hidden sm:flex"}`}>
+            <div className={`flex flex-wrap gap-2.5 mb-10 overflow-hidden transition-all duration-300 ${showFilters ? "max-h-40 opacity-100" : "max-h-0 opacity-0 sm:max-h-40 sm:opacity-100"}`}>
                 {CATEGORIES.map((cat) => (
                     <button
                         key={cat}
                         onClick={() => handleCategory(cat)}
-                        className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${category === cat
-                            ? "bg-gold-500 text-white shadow-md"
-                            : "bg-white text-gray-600 border border-gray-200 hover:border-gold-300 hover:text-gold-600"
-                            }`}
+                        className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+                            category === cat
+                                ? "bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-lg shadow-gold-300/30 scale-105"
+                                : "bg-white text-gray-600 border border-gray-200 hover:border-gold-300 hover:text-gold-600 hover:bg-gold-50/50 hover:shadow-sm"
+                        }`}
                     >
                         {cat}
                     </button>
@@ -137,15 +144,16 @@ export default function Products({ ownerFilter }) {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="flex justify-center gap-2 mt-10">
+                        <div className="flex justify-center gap-2.5 mt-12">
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                                 <button
                                     key={p}
                                     onClick={() => setPage(p)}
-                                    className={`w-10 h-10 rounded-lg font-medium transition-all ${page === p
-                                        ? "bg-gold-500 text-white shadow-md"
-                                        : "bg-white text-gray-600 hover:bg-gold-50"
-                                        }`}
+                                    className={`w-11 h-11 rounded-xl font-semibold transition-all duration-300 ${
+                                        page === p
+                                            ? "bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-lg shadow-gold-300/30 scale-110"
+                                            : "bg-white text-gray-600 hover:bg-gold-50 hover:text-gold-600 border border-gray-200 hover:border-gold-300"
+                                    }`}
                                 >
                                     {p}
                                 </button>

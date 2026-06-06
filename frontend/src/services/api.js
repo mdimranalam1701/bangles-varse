@@ -59,6 +59,11 @@ export const orderAPI = {
     getOwnerOrders: () => API.get("/orders/owner"),
     getAll: () => API.get("/orders"),
     getById: (id) => API.get(`/orders/${id}`),
+    updateStatus: (id, data) => API.put(`/orders/${id}/status`, data),
+    updateTracking: (id, data) => API.put(`/orders/${id}/tracking`, data),
+    requestReturn: (id, data) => API.post(`/orders/${id}/return`, data),
+    handleReturn: (id, data) => API.put(`/orders/${id}/return`, data),
+    reorder: (id) => API.post(`/orders/${id}/reorder`),
 };
 
 // ── Payments (Razorpay) ──────────────────────────
@@ -90,6 +95,10 @@ export const creditAPI = {
 // ── Notifications ─────────────────────────────────
 export const notificationAPI = {
     get: () => API.get("/notifications"),
+    getUnreadCount: () => API.get("/notifications/unread-count"),
+    markAsRead: (id) => API.put(`/notifications/${id}/read`),
+    markAllAsRead: () => API.put("/notifications/read-all"),
+    delete: (id) => API.delete(`/notifications/${id}`),
 };
 
 // ── Transactions ──────────────────────────────────
@@ -119,6 +128,77 @@ export const uploadAPI = {
     image: (formData) => API.post("/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
     }),
+};
+
+// ── Wishlist ──────────────────────────────────────
+export const wishlistAPI = {
+    get: () => API.get("/wishlist"),
+    toggle: (productId) => API.post(`/wishlist/toggle/${productId}`),
+    remove: (productId) => API.delete(`/wishlist/remove/${productId}`),
+    clear: () => API.delete("/wishlist/clear"),
+    check: (productId) => API.get(`/wishlist/check/${productId}`),
+};
+
+// ── Addresses ─────────────────────────────────────
+export const addressAPI = {
+    get: () => API.get("/addresses"),
+    add: (data) => API.post("/addresses", data),
+    update: (id, data) => API.put(`/addresses/${id}`, data),
+    delete: (id) => API.delete(`/addresses/${id}`),
+    setDefault: (id) => API.put(`/addresses/${id}/default`),
+};
+
+// ── Coupons ───────────────────────────────────────
+export const couponAPI = {
+    getAll: () => API.get("/coupons"),
+    create: (data) => API.post("/coupons", data),
+    update: (id, data) => API.put(`/coupons/${id}`, data),
+    delete: (id) => API.delete(`/coupons/${id}`),
+    toggle: (id) => API.put(`/coupons/${id}/toggle`),
+    validate: (data) => API.post("/coupons/validate", data),
+};
+
+// ── Announcements ─────────────────────────────────
+export const announcementAPI = {
+    getPublic: () => API.get("/announcements/public"),
+    getAll: () => API.get("/announcements"),
+    create: (data) => API.post("/announcements", data),
+    update: (id, data) => API.put(`/announcements/${id}`, data),
+    delete: (id) => API.delete(`/announcements/${id}`),
+};
+
+// ── Activity Logs ─────────────────────────────────
+export const activityLogAPI = {
+    getAll: (params) => API.get("/activity-logs", { params }),
+    getByUser: (userId, params) => API.get(`/activity-logs/user/${userId}`, { params }),
+};
+
+// ── Categories ────────────────────────────────────
+export const categoryAPI = {
+    getPublic: () => API.get("/categories/public"),
+    getAll: () => API.get("/categories"),
+    create: (data) => API.post("/categories", data),
+    update: (id, data) => API.put(`/categories/${id}`, data),
+    delete: (id) => API.delete(`/categories/${id}`),
+    toggle: (id) => API.put(`/categories/${id}/toggle`),
+};
+
+// ── Payouts ───────────────────────────────────────
+export const payoutAPI = {
+    getAll: (params) => API.get("/payouts", { params }),
+    create: (data) => API.post("/payouts", data),
+    updateStatus: (id, data) => API.put(`/payouts/${id}/status`, data),
+    getMy: () => API.get("/payouts/my"),
+    getEarnings: () => API.get("/payouts/earnings"),
+};
+
+// ── Chat ──────────────────────────────────────────
+export const chatAPI = {
+    startConversation: (data) => API.post("/chat/conversation", data),
+    getConversations: () => API.get("/chat/conversations"),
+    getUnreadCount: () => API.get("/chat/unread"),
+    getMessages: (conversationId, params) => API.get(`/chat/${conversationId}/messages`, { params }),
+    sendMessage: (conversationId, data) => API.post(`/chat/${conversationId}/messages`, data),
 };
 
 export default API;

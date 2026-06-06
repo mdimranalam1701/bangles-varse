@@ -16,6 +16,14 @@ import reviewRoutes from "./modules/review/review.routes.js";
 import paymentRoutes from "./modules/payment/payment.routes.js";
 import adminRoutes from "./modules/admin/admin.routes.js";
 import uploadRoutes from "./modules/upload/upload.routes.js";
+import wishlistRoutes from "./modules/wishlist/wishlist.routes.js";
+import addressRoutes from "./modules/address/address.routes.js";
+import couponRoutes from "./modules/coupon/coupon.routes.js";
+import announcementRoutes from "./modules/announcement/announcement.routes.js";
+import activityLogRoutes from "./modules/activityLog/activityLog.routes.js";
+import categoryRoutes from "./modules/category/category.routes.js";
+import payoutRoutes from "./modules/payout/payout.routes.js";
+import chatRoutes from "./modules/chat/chat.routes.js";
 
 
 
@@ -66,5 +74,13 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/addresses", addressRoutes);
+app.use("/api/coupons", couponRoutes);
+app.use("/api/announcements", announcementRoutes);
+app.use("/api/activity-logs", activityLogRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/payouts", payoutRoutes);
+app.use("/api/chat", chatRoutes);
 
 export default app;
