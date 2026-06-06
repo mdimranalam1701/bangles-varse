@@ -22,6 +22,16 @@ const creditSchema = new mongoose.Schema(
                     type: Date,
                     default: Date.now,
                 },
+                paymentMethod: {
+                    type: String,
+                    enum: ["upi", "cash", null],
+                    default: null,
+                },
+                status: {
+                    type: String,
+                    enum: ["pending", "paid"],
+                    default: "pending",
+                }
             },
         ],
         balance: {

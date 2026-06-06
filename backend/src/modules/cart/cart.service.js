@@ -20,7 +20,7 @@ export const addToCart = async (
   // check existing product
   const existingItem = cart.items.find(
     (item) =>
-      item.product.toString() === productId
+      item.product && item.product.toString() === productId
   );
 
   if (existingItem) {
@@ -42,7 +42,10 @@ export const getCart = async (userId) => {
 
   return await Cart.findOne({
     user: userId,
-  }).populate("items.product");
+  }).populate({
+    path: "items.product",
+    populate: { path: "owner", select: "_id name" },
+  });
 
 };
 
@@ -62,10 +65,20 @@ export const removeFromCart = async (
 
   cart.items = cart.items.filter(
     (item) =>
-      item.product.toString() !== productId
+      item.product && item.product.toString() !== productId
   );
 
   await cart.save();
 
+  return cart;
+};
+
+// clear entire cart
+export const clearCart = async (userId) => {
+  const cart = await Cart.findOne({ user: userId });
+  if (cart) {
+    cart.items = [];
+    await cart.save();
+  }
   return cart;
 };

@@ -58,6 +58,7 @@ export const orderAPI = {
     getMy: () => API.get("/orders/my"),
     getOwnerOrders: () => API.get("/orders/owner"),
     getAll: () => API.get("/orders"),
+    getById: (id) => API.get(`/orders/${id}`),
 };
 
 // ── Payments (Razorpay) ──────────────────────────
@@ -74,9 +75,16 @@ export const reviewAPI = {
 
 // ── Credit ────────────────────────────────────────
 export const creditAPI = {
+    requestApproval: (data) => API.post("/credit/request-approval", data),
+    getApprovalStatus: (ownerId) => API.get(`/credit/approval-status/${ownerId}`),
+    approveCredit: (approvalId) => API.put(`/credit/approve/${approvalId}`),
+    getApprovals: () => API.get("/credit/approvals"),
     add: (data) => API.post("/credit/add", data),
-    pay: (ownerId, data) => API.post(`/credit/pay/${ownerId}`, data),
+    pay: (data) => API.post(`/credit/pay`, data),
+    customerPay: (data) => API.post("/credit/customer-pay", data),
     get: (ownerId) => API.get(`/credit/${ownerId}`),
+    getCustomerAll: () => API.get("/credit/customer-all"),
+    getOwnerAll: () => API.get("/credit/owner-all"),
 };
 
 // ── Notifications ─────────────────────────────────

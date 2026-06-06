@@ -1,6 +1,7 @@
 import app from "./app.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { seedAdmin } from "./utils/seedAdmin.js";
 
 import http from "http";
 import { Server } from "socket.io";
@@ -31,9 +32,10 @@ io.on("connection", (socket) => {
 // DB connection
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => {
+  .then(async () => {
 
     console.log("MongoDB connected");
+    await seedAdmin();
 
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

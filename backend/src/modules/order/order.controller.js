@@ -61,3 +61,23 @@ export const getAllOrders = async (req, res) => {
     });
   }
 };
+
+export const getOrder = async (req, res) => {
+  try {
+    const order = await orderService.getOrderById(
+      req.params.id,
+      req.user._id,
+      req.user.role
+    );
+
+    res.json({
+      success: true,
+      data: order,
+    });
+  } catch (err) {
+    res.status(403).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};

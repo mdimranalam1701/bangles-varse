@@ -3,6 +3,7 @@ import { Order } from "../order/order.model.js";
 import { Product } from "../product/product.model.js";
 import { Transaction } from "../transaction/transaction.model.js";
 import { Notification } from "../notification/notification.model.js";
+import { Credit } from "../credit/credit.model.js";
 
 export const getAllUsers = async () => {
     return await User.find().select("-password").sort({ createdAt: -1 });
@@ -57,7 +58,17 @@ export const getAdminStats = async () => {
     const pendingOwners = await User.countDocuments({ role: "owner", isApproved: false });
     const totalProducts = await Product.countDocuments();
     const totalOrders = await Order.countDocuments();
-    const totalTransactions = await Transaction.countDocuments();
+    const totalTransactionsCount = await Transaction.countDocuments();
+
+    // Financial calculations
+    const allOrders = await Order.find({ status: { $ne: "cancelled" } });
+    const totalSalesAmount = allOrders.reduce((acc, order) => acc + (order.totalAmount || 0), 0);
+
+    const allCredits = await Credit.find();
+    const totalOutstandingCredit = allCredits.reduce((acc, credit) => acc + (credit.balance || 0), 0);
+
+    const paymentTransactions = await Transaction.find({ type: "payment" });
+    const totalPaymentsReceived = paymentTransactions.reduce((acc, tx) => acc + (tx.amount || 0), 0);
 
     const recentOrders = await Order.find()
         .populate("user", "name email")
@@ -69,6 +80,12 @@ export const getAdminStats = async () => {
         .sort({ createdAt: -1 })
         .limit(10);
 
+    const recentTransactions = await Transaction.find()
+        .populate("user", "name email")
+        .populate("owner", "name email")
+        .sort({ createdAt: -1 })
+        .limit(10);
+
     return {
         totalUsers,
         totalOwners,
@@ -76,9 +93,13 @@ export const getAdminStats = async () => {
         pendingOwners,
         totalProducts,
         totalOrders,
-        totalTransactions,
+        totalTransactions: totalTransactionsCount,
+        totalSalesAmount,
+        totalOutstandingCredit,
+        totalPaymentsReceived,
         recentOrders,
         recentUsers,
+        recentTransactions,
     };
 };
 

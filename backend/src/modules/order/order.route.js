@@ -4,6 +4,7 @@ import {
   getMyOrders,
   getOwnerOrders,
   getAllOrders,
+  getOrder,
 } from "./order.controller.js";
 
 import { isAuth, authorizeRoles } from "../../middleware/auth.middleware.js";
@@ -21,5 +22,8 @@ router.get("/owner", isAuth, authorizeRoles("owner"), getOwnerOrders);
 
 // admin only
 router.get("/", isAuth, authorizeRoles("admin"), getAllOrders);
+
+// get specific order
+router.get("/:id", isAuth, getOrder);
 
 export default router;

@@ -60,12 +60,20 @@ export default function Navbar() {
                                     </Link>
                                 )}
                                 {user.role === "user" && (
-                                    <Link
-                                        to="/my-orders"
-                                        className="flex items-center gap-1 text-gray-600 hover:text-gold-600 font-medium transition-colors"
-                                    >
-                                        <FiPackage size={16} /> Orders
-                                    </Link>
+                                    <>
+                                        <Link
+                                            to="/my-orders"
+                                            className="flex items-center gap-1 text-gray-600 hover:text-gold-600 font-medium transition-colors"
+                                        >
+                                            <FiPackage size={16} /> Orders
+                                        </Link>
+                                        <Link
+                                            to="/credit-history"
+                                            className="flex items-center gap-1 text-gray-600 hover:text-gold-600 font-medium transition-colors"
+                                        >
+                                            <FiGrid size={16} /> Credits
+                                        </Link>
+                                    </>
                                 )}
                                 {user.role === "user" && (
                                     <Link to="/cart" className="relative text-gray-600 hover:text-gold-600 transition-colors">
@@ -168,6 +176,15 @@ export default function Navbar() {
                                 >
                                     📦 My Orders
                                 </Link>
+                                {user.role === "user" && (
+                                    <Link
+                                        to="/credit-history"
+                                        onClick={() => setOpen(false)}
+                                        className="block py-2 text-gray-700 hover:text-gold-600 font-medium"
+                                    >
+                                        💳 Credit History
+                                    </Link>
+                                )}
                                 {user.role === "user" && (
                                     <Link
                                         to="/cart"

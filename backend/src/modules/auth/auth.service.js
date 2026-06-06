@@ -76,7 +76,7 @@ export const getProfile = async (userId) => {
 };
 
 export const updateProfile = async (userId, data) => {
-    const allowedFields = ["name", "phone", "bio", "companyName", "address", "profilePicture"];
+    const allowedFields = ["name", "phone", "bio", "companyName", "address", "profilePicture", "upiId"];
     const updateData = {};
 
     for (const field of allowedFields) {

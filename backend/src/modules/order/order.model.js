@@ -19,7 +19,7 @@ const orderSchema = new mongoose.Schema(
     totalAmount: Number,
     paymentType: {
       type: String,
-      enum: ["cash", "credit"],
+      enum: ["cash", "credit", "buy_on_credit"],
       default: "cash",
     },
 

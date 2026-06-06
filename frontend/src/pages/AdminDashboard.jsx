@@ -17,6 +17,9 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState("overview");
     const [userFilter, setUserFilter] = useState("all");
+    const [searchUsers, setSearchUsers] = useState("");
+    const [searchOrders, setSearchOrders] = useState("");
+    const [searchTx, setSearchTx] = useState("");
 
     useEffect(() => {
         fetchData();
@@ -62,10 +65,28 @@ export default function AdminDashboard() {
     const owners = users.filter(u => u.role === "owner");
     const pendingOwners = owners.filter(o => !o.isApproved);
 
-    const filteredUsers = userFilter === "all" ? users
+    let filteredUsers = userFilter === "all" ? users
         : userFilter === "customers" ? customers
             : userFilter === "owners" ? owners
                 : userFilter === "pending" ? pendingOwners : users;
+
+    if (searchUsers) {
+        filteredUsers = filteredUsers.filter(u => 
+            u.name?.toLowerCase().includes(searchUsers.toLowerCase()) || 
+            u.email?.toLowerCase().includes(searchUsers.toLowerCase())
+        );
+    }
+
+    const filteredOrders = orders.filter(o => 
+        o._id?.toLowerCase().includes(searchOrders.toLowerCase()) || 
+        o.user?.name?.toLowerCase().includes(searchOrders.toLowerCase())
+    );
+
+    const filteredTx = transactions.filter(tx => 
+        tx._id?.toLowerCase().includes(searchTx.toLowerCase()) || 
+        tx.user?.name?.toLowerCase().includes(searchTx.toLowerCase()) ||
+        tx.note?.toLowerCase().includes(searchTx.toLowerCase())
+    );
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
@@ -74,22 +95,41 @@ export default function AdminDashboard() {
                 <p className="text-gray-400">Welcome, {user?.name} — Full site control</p>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            {/* Platform Metrics */}
+            <h2 className="text-xl font-serif font-semibold text-gray-800 mb-4">Platform Overview</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {[
-                    { icon: <FiUsers />, label: "Customers", value: stats?.totalUsers || 0 },
-                    { icon: <FiUserCheck />, label: "Approved Owners", value: stats?.approvedOwners || 0 },
-                    { icon: <FiUserX />, label: "Pending Owners", value: stats?.pendingOwners || 0 },
-                    { icon: <FiPackage />, label: "Products", value: stats?.totalProducts || 0 },
-                    { icon: <FiShoppingCart />, label: "Orders", value: stats?.totalOrders || 0 },
-                    { icon: <FiDollarSign />, label: "Transactions", value: stats?.totalTransactions || 0 },
+                    { icon: <FiUsers />, label: "Total Users", value: stats?.totalUsers || 0, color: "text-blue-600", bg: "bg-blue-100" },
+                    { icon: <FiUserCheck />, label: "Approved Owners", value: stats?.approvedOwners || 0, color: "text-green-600", bg: "bg-green-100" },
+                    { icon: <FiPackage />, label: "Total Products", value: stats?.totalProducts || 0, color: "text-purple-600", bg: "bg-purple-100" },
+                    { icon: <FiShoppingCart />, label: "Total Orders", value: stats?.totalOrders || 0, color: "text-orange-600", bg: "bg-orange-100" },
                 ].map((s, i) => (
-                    <div key={i} className="card p-5">
+                    <div key={i} className="card p-5 border-l-4 border-transparent hover:border-gold-400 transition-all">
                         <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-gold-100 text-gold-600">{s.icon}</div>
+                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${s.bg} ${s.color}`}>{s.icon}</div>
                             <div>
                                 <p className="text-sm text-gray-400">{s.label}</p>
                                 <p className="text-xl font-bold text-gray-800">{s.value}</p>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Financial Metrics */}
+            <h2 className="text-xl font-serif font-semibold text-gray-800 mb-4">Financial Insights (Global)</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+                {[
+                    { icon: <FiDollarSign />, label: "Total Platform Sales", value: stats?.totalSalesAmount || 0, isMoney: true },
+                    { icon: <FiDollarSign />, label: "Global Outstanding Credit", value: stats?.totalOutstandingCredit || 0, isMoney: true },
+                    { icon: <FiDollarSign />, label: "Total Credit Payments", value: stats?.totalPaymentsReceived || 0, isMoney: true },
+                ].map((s, i) => (
+                    <div key={i} className="card p-6 bg-gradient-to-br from-white to-gold-50/30 border border-gold-100">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gold-100 text-gold-600 text-xl">{s.icon}</div>
+                            <div>
+                                <p className="text-sm font-medium text-gray-500">{s.label}</p>
+                                <PriceTag amount={s.value} className="text-2xl font-bold text-gray-900" />
                             </div>
                         </div>
                     </div>
@@ -135,7 +175,7 @@ export default function AdminDashboard() {
 
             {/* Overview */}
             {tab === "overview" && stats && (
-                <div className="grid lg:grid-cols-2 gap-6">
+                <div className="grid lg:grid-cols-3 gap-6">
                     <div className="card p-5">
                         <h3 className="font-serif font-semibold mb-4">Recent Users</h3>
                         <div className="space-y-3">
@@ -143,9 +183,9 @@ export default function AdminDashboard() {
                                 <div key={u._id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 bg-gold-100 rounded-full flex items-center justify-center text-gold-600 text-sm font-bold">{u.name?.[0]?.toUpperCase()}</div>
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-700">{u.name}</p>
-                                            <p className="text-xs text-gray-400">{u.email}</p>
+                                        <div className="max-w-[120px] sm:max-w-full">
+                                            <p className="text-sm font-medium text-gray-700 truncate">{u.name}</p>
+                                            <p className="text-xs text-gray-400 truncate">{u.email}</p>
                                         </div>
                                     </div>
                                     <span className={`badge ${u.role === "owner" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>{u.role}</span>
@@ -170,24 +210,48 @@ export default function AdminDashboard() {
                             ))}
                         </div>
                     </div>
+                    <div className="card p-5">
+                        <h3 className="font-serif font-semibold mb-4">Recent Transactions</h3>
+                        <div className="space-y-3">
+                            {(stats.recentTransactions || []).slice(0, 5).map(tx => (
+                                <div key={tx._id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-700 truncate max-w-[150px]">{tx.note || "Transaction"}</p>
+                                        <p className="text-xs text-gray-400">{tx.user?.name || "Unknown"}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-1">
+                                        <PriceTag amount={tx.amount} className="text-sm font-bold" />
+                                        <StatusBadge status={tx.type} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             )}
 
-            {/* Users Tab */}
-            {tab === "users" && (
                 <div>
-                    <div className="flex flex-wrap gap-2 mb-6">
-                        {[
-                            { key: "all", label: `All (${users.length})` },
-                            { key: "customers", label: `Customers (${customers.length})` },
-                            { key: "owners", label: `Owners (${owners.length})` },
-                            { key: "pending", label: `Pending (${pendingOwners.length})` },
-                        ].map(f => (
-                            <button key={f.key} onClick={() => setUserFilter(f.key)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${userFilter === f.key ? "bg-gold-500 text-white" : "bg-white text-gray-600 border hover:border-gold-300"}`}>
-                                {f.label}
-                            </button>
-                        ))}
+                    <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                        <div className="flex flex-wrap gap-2">
+                            {[
+                                { key: "all", label: `All (${users.length})` },
+                                { key: "customers", label: `Customers (${customers.length})` },
+                                { key: "owners", label: `Owners (${owners.length})` },
+                                { key: "pending", label: `Pending (${pendingOwners.length})` },
+                            ].map(f => (
+                                <button key={f.key} onClick={() => setUserFilter(f.key)}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${userFilter === f.key ? "bg-gold-500 text-white" : "bg-white text-gray-600 border hover:border-gold-300"}`}>
+                                    {f.label}
+                                </button>
+                            ))}
+                        </div>
+                        <input 
+                            type="text" 
+                            placeholder="Search users by name or email..." 
+                            value={searchUsers}
+                            onChange={(e) => setSearchUsers(e.target.value)}
+                            className="input-field max-w-xs"
+                        />
                     </div>
                     <div className="card overflow-hidden">
                         <div className="overflow-x-auto">
@@ -227,8 +291,18 @@ export default function AdminDashboard() {
 
             {/* Orders */}
             {tab === "orders" && (
-                <div className="card overflow-hidden">
-                    <div className="overflow-x-auto">
+                <div className="space-y-4">
+                    <div className="flex justify-end">
+                        <input 
+                            type="text" 
+                            placeholder="Search orders by ID or Customer..." 
+                            value={searchOrders}
+                            onChange={(e) => setSearchOrders(e.target.value)}
+                            className="input-field max-w-sm"
+                        />
+                    </div>
+                    <div className="card overflow-hidden">
+                        <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead><tr className="bg-gray-50 text-left">
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Order ID</th>
@@ -239,8 +313,8 @@ export default function AdminDashboard() {
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
                             </tr></thead>
                             <tbody className="divide-y divide-gray-100">
-                                {orders.length === 0 ? <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400">No orders yet</td></tr>
-                                    : orders.map(o => (
+                                {filteredOrders.length === 0 ? <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400">No orders found</td></tr>
+                                    : filteredOrders.map(o => (
                                         <tr key={o._id} className="hover:bg-gold-50/50 transition-colors">
                                             <td className="px-6 py-4 font-mono text-sm text-gray-500">#{o._id?.slice(-8).toUpperCase()}</td>
                                             <td className="px-6 py-4 text-sm">{o.user?.name || "—"}</td>
@@ -254,12 +328,23 @@ export default function AdminDashboard() {
                         </table>
                     </div>
                 </div>
+            </div>
             )}
 
             {/* Transactions */}
             {tab === "transactions" && (
-                <div className="card overflow-hidden">
-                    <div className="overflow-x-auto">
+                <div className="space-y-4">
+                    <div className="flex justify-end">
+                        <input 
+                            type="text" 
+                            placeholder="Search transactions..." 
+                            value={searchTx}
+                            onChange={(e) => setSearchTx(e.target.value)}
+                            className="input-field max-w-sm"
+                        />
+                    </div>
+                    <div className="card overflow-hidden">
+                        <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead><tr className="bg-gray-50 text-left">
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">ID</th>
@@ -270,8 +355,8 @@ export default function AdminDashboard() {
                                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
                             </tr></thead>
                             <tbody className="divide-y divide-gray-100">
-                                {transactions.length === 0 ? <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400">No transactions</td></tr>
-                                    : transactions.map(tx => (
+                                {filteredTx.length === 0 ? <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400">No transactions found</td></tr>
+                                    : filteredTx.map(tx => (
                                         <tr key={tx._id} className="hover:bg-gold-50/50 transition-colors">
                                             <td className="px-6 py-4 font-mono text-sm text-gray-500">#{tx._id?.slice(-8).toUpperCase()}</td>
                                             <td className="px-6 py-4 text-sm">{tx.user?.name || "—"}</td>
@@ -285,6 +370,7 @@ export default function AdminDashboard() {
                         </table>
                     </div>
                 </div>
+            </div>
             )}
         </div>
     );

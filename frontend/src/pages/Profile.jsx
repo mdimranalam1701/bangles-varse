@@ -19,6 +19,7 @@ export default function Profile() {
         companyName: "",
         address: "",
         profilePicture: "",
+        upiId: "",
     });
 
     useEffect(() => {
@@ -37,6 +38,7 @@ export default function Profile() {
                 companyName: p.companyName || "",
                 address: p.address || "",
                 profilePicture: p.profilePicture || "",
+                upiId: p.upiId || "",
             });
         } catch (err) {
             toast.error("Failed to load profile");
@@ -90,6 +92,7 @@ export default function Profile() {
                 companyName: data.data.companyName || "",
                 address: data.data.address || "",
                 profilePicture: data.data.profilePicture || "",
+                upiId: data.data.upiId || "",
             });
             // Update localStorage with full profile including profilePicture
             localStorage.setItem("user", JSON.stringify(data.data));
@@ -214,19 +217,34 @@ export default function Profile() {
                     </div>
 
                     {isOwner && (
-                        <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Company / Shop Name</label>
-                            <div className="relative">
-                                <FiBriefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                                <input
-                                    type="text"
-                                    value={form.companyName}
-                                    onChange={(e) => setForm({ ...form, companyName: e.target.value })}
-                                    placeholder="Your shop name"
-                                    className="input-field !pl-10"
-                                />
+                        <>
+                            <div className="sm:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Company / Shop Name</label>
+                                <div className="relative">
+                                    <FiBriefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                    <input
+                                        type="text"
+                                        value={form.companyName}
+                                        onChange={(e) => setForm({ ...form, companyName: e.target.value })}
+                                        placeholder="Your shop name"
+                                        className="input-field !pl-10"
+                                    />
+                                </div>
                             </div>
-                        </div>
+                            <div className="sm:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">UPI ID (For accepting payments)</label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">UPI</span>
+                                    <input
+                                        type="text"
+                                        value={form.upiId}
+                                        onChange={(e) => setForm({ ...form, upiId: e.target.value })}
+                                        placeholder="yourname@upi"
+                                        className="input-field !pl-12"
+                                    />
+                                </div>
+                            </div>
+                        </>
                     )}
 
                     <div className="sm:col-span-2">

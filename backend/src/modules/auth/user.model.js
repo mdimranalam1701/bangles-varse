@@ -39,6 +39,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    upiId: {
+        type: String,
+        default: "",
+    },
     isApproved: {
         type: Boolean,
         default: false,

@@ -3,20 +3,57 @@ import { useNavigate } from "react-router-dom";
 import { FiCreditCard, FiDollarSign, FiArrowLeft } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
-import { orderAPI, paymentAPI } from "../services/api";
+import { creditAPI, orderAPI, paymentAPI } from "../services/api";
 import { PriceTag } from "../components/UI";
+import { FiClock } from "react-icons/fi";
 
 export default function Checkout() {
     const { cart, fetchCart } = useCart();
     const navigate = useNavigate();
     const [paymentType, setPaymentType] = useState("cash");
     const [loading, setLoading] = useState(false);
+    const [approvalStatus, setApprovalStatus] = useState(null);
+    const [checkingApproval, setCheckingApproval] = useState(false);
 
     const items = cart?.items || [];
     const total = items.reduce(
         (sum, item) => sum + (item.product?.price || 0) * item.quantity,
         0
     );
+
+    const ownerField = items.length > 0 ? items[items.length - 1].product?.owner : null;
+    const ownerId = ownerField?._id || ownerField || null;
+
+    const checkApproval = async () => {
+        if (!ownerId) {
+            setApprovalStatus("no_owner");
+            return;
+        }
+        setCheckingApproval(true);
+        try {
+            const { data } = await creditAPI.getApprovalStatus(ownerId);
+            setApprovalStatus(data.data?.status || null);
+        } catch {
+            setApprovalStatus(null);
+        }
+        setCheckingApproval(false);
+    };
+
+    const handleRequestApproval = async () => {
+        if (!ownerId) {
+            toast.error("Unable to identify shop owner. Please try removing and re-adding items to your cart.");
+            return;
+        }
+        setLoading(true);
+        try {
+            const { data } = await creditAPI.requestApproval({ ownerId });
+            setApprovalStatus(data.data?.status || "pending");
+            toast.success("Approval request sent to shop owner!");
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to request approval");
+        }
+        setLoading(false);
+    };
 
     const handleCheckout = async () => {
         if (items.length === 0) {
@@ -39,11 +76,11 @@ export default function Checkout() {
 
             const orderId = orderData.data?._id;
 
-            if (paymentType === "cash") {
+            if (paymentType === "cash" || paymentType === "buy_on_credit") {
                 toast.success("Order placed successfully!");
                 await fetchCart();
                 navigate("/my-orders");
-            } else {
+            } else if (paymentType === "credit") {
                 // Online payment via Razorpay
                 const { data: razorpayOrder } = await paymentAPI.createOrder({ amount: total });
 
@@ -142,7 +179,7 @@ export default function Checkout() {
             {/* Payment Method */}
             <div className="card p-6 mb-6">
                 <h3 className="font-serif font-semibold text-gray-800 mb-4">Payment Method</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <button
                         onClick={() => setPaymentType("cash")}
                         className={`p-4 rounded-xl border-2 text-center transition-all ${paymentType === "cash"
@@ -167,25 +204,62 @@ export default function Checkout() {
                             Pay Online
                         </span>
                     </button>
+                    <button
+                        onClick={() => {
+                            setPaymentType("buy_on_credit");
+                            if (approvalStatus === null) checkApproval();
+                        }}
+                        className={`p-4 rounded-xl border-2 text-center transition-all ${paymentType === "buy_on_credit"
+                            ? "border-gold-500 bg-gold-50"
+                            : "border-gray-200 hover:border-gold-300"
+                            }`}
+                    >
+                        <FiClock size={24} className={`mx-auto mb-2 ${paymentType === "buy_on_credit" ? "text-gold-600" : "text-gray-400"}`} />
+                        <span className={`font-medium ${paymentType === "buy_on_credit" ? "text-gold-700" : "text-gray-600"}`}>
+                            Buy on Credit
+                        </span>
+                    </button>
                 </div>
                 {paymentType === "credit" && (
                     <p className="text-sm text-gray-400 mt-3">
                         💡 You'll be redirected to Razorpay for secure payment.
                     </p>
                 )}
+                {paymentType === "buy_on_credit" && (
+                    <div className="mt-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
+                        {checkingApproval ? (
+                            <p className="text-sm text-gray-500">Checking approval status...</p>
+                        ) : approvalStatus === "no_owner" ? (
+                            <p className="text-sm text-red-500">⚠️ Could not identify the shop owner. Please re-add your items to the cart and try again.</p>
+                        ) : approvalStatus === "approved" ? (
+                            <p className="text-sm text-green-600 font-medium">✓ You are approved to buy on credit from this shop.</p>
+                        ) : approvalStatus === "pending" ? (
+                            <p className="text-sm text-amber-600 font-medium">⏳ Your credit request is pending approval from the shop owner.</p>
+                        ) : (
+                            <div>
+                                <p className="text-sm text-gray-600 mb-3">You need approval from the shop owner to buy on credit.</p>
+                                <button onClick={handleRequestApproval} disabled={loading} className="btn-secondary w-full py-2">
+                                    {loading ? "Sending..." : "Request Credit Approval"}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
-            <button
-                onClick={handleCheckout}
-                disabled={loading}
-                className="btn-primary w-full text-lg"
-            >
-                {loading
-                    ? "Processing..."
-                    : paymentType === "cash"
-                        ? `Place Order — ₹${total.toLocaleString("en-IN")}`
-                        : `Pay ₹${total.toLocaleString("en-IN")}`}
-            </button>
+            {paymentType === "buy_on_credit" && approvalStatus !== "approved" ? null : (
+                <button
+                    onClick={handleCheckout}
+                    disabled={loading}
+                    className="btn-primary w-full text-lg"
+                >
+                    {loading
+                        ? "Processing..."
+                        : paymentType === "cash" || paymentType === "buy_on_credit"
+                            ? `Place Order — ₹${total.toLocaleString("en-IN")}`
+                            : `Pay ₹${total.toLocaleString("en-IN")}`}
+                </button>
+            )}
         </div>
     );
 }

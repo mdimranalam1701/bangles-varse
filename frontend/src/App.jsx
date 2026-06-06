@@ -16,6 +16,8 @@ import OwnerDashboard from "./pages/OwnerDashboard";
 import MyShop from "./pages/MyShop";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
+import CreditHistory from "./pages/CreditHistory";
+import OrderDetail from "./pages/OrderDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
@@ -57,10 +59,26 @@ export default function App() {
                                     }
                                 />
                                 <Route
+                                    path="/orders/:id"
+                                    element={
+                                        <ProtectedRoute>
+                                            <OrderDetail />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
                                     path="/profile"
                                     element={
                                         <ProtectedRoute>
                                             <Profile />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/credit-history"
+                                    element={
+                                        <ProtectedRoute>
+                                            <CreditHistory />
                                         </ProtectedRoute>
                                     }
                                 />

@@ -46,54 +46,67 @@ export default function MyOrders() {
             <h1 className="text-3xl font-serif font-bold text-gray-900 mb-8">My Orders</h1>
 
             <div className="space-y-4">
-                {orders.map((order) => (
-                    <div key={order._id} className="card p-6">
-                        <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <FiPackage className="text-gold-500" />
-                                    <span className="font-mono text-sm text-gray-500">
-                                        #{order._id?.slice(-8).toUpperCase()}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-gray-400">
-                                    <FiCalendar size={12} />
-                                    {new Date(order.createdAt).toLocaleDateString("en-IN", {
-                                        day: "numeric",
-                                        month: "long",
-                                        year: "numeric",
-                                    })}
-                                </div>
-                            </div>
+                {orders.map((order) => {
+                    const firstImage = order.items?.[0]?.product?.image;
 
-                            <div className="flex items-center gap-3">
-                                <StatusBadge status={order.status} />
-                                <PriceTag amount={order.totalAmount} className="text-lg" />
-                            </div>
-                        </div>
+                    return (
+                        <Link 
+                            key={order._id} 
+                            to={`/orders/${order._id}`}
+                            className="card p-4 sm:p-6 block hover:border-gold-300 transition-all hover:shadow-md bg-white border border-transparent"
+                        >
+                            <div className="flex flex-col sm:flex-row gap-6">
+                                {/* First product image */}
+                                <div className="w-full sm:w-24 h-24 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100 flex items-center justify-center">
+                                    {firstImage ? (
+                                        <img src={firstImage} alt="Product" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-3xl opacity-20">💎</span>
+                                    )}
+                                </div>
+                                
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="font-semibold text-gray-900 text-lg">
+                                                    Order #{order._id?.slice(-8).toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-gray-500 mb-1">
+                                                {order.items?.length} item{order.items?.length !== 1 ? "s" : ""}
+                                                {order.paymentType && (
+                                                    <span className="ml-2 capitalize">
+                                                        • {order.paymentType.replace(/_/g, ' ')}
+                                                    </span>
+                                                )}
+                                            </p>
+                                        </div>
 
-                        <div className="border-t border-gray-100 pt-4">
-                            <p className="text-sm text-gray-500 mb-2">
-                                {order.items?.length} item{order.items?.length !== 1 ? "s" : ""}
-                                {order.paymentType && (
-                                    <span className="ml-2">
-                                        • {order.paymentType === "cash" ? "💵 Cash" : "💳 Online"}
-                                    </span>
-                                )}
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                                {order.items?.map((item, i) => (
-                                    <span
-                                        key={i}
-                                        className="inline-flex items-center gap-1 bg-gold-50 text-gold-700 px-3 py-1 rounded-full text-sm"
-                                    >
-                                        {item.product?.name || "Product"} × {item.quantity}
-                                    </span>
-                                ))}
+                                        <div className="flex flex-col items-end gap-2">
+                                            <PriceTag amount={order.totalAmount} className="text-lg font-bold" />
+                                            <StatusBadge status={order.status} />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between mt-4">
+                                        <div className="flex items-center gap-1 text-xs text-gray-400">
+                                            <FiCalendar size={12} />
+                                            {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                                                day: "numeric",
+                                                month: "long",
+                                                year: "numeric",
+                                            })}
+                                        </div>
+                                        <span className="text-gold-600 text-sm font-medium hover:underline">
+                                            View Details &rarr;
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                ))}
+                        </Link>
+                    );
+                })}
             </div>
         </div>
     );
