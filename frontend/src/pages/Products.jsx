@@ -7,7 +7,7 @@ import { LoadingSpinner, EmptyState } from "../components/UI";
 
 const CATEGORIES = ["All", "Gold", "Silver", "Diamond", "Platinum", "Rose Gold"];
 
-export default function Products() {
+export default function Products({ ownerFilter }) {
     const [searchParams, setSearchParams] = useSearchParams();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -27,6 +27,7 @@ export default function Products() {
             const params = { page, limit: 12 };
             if (search) params.search = search;
             if (category !== "All") params.category = category;
+            if (ownerFilter) params.owner = ownerFilter;
 
             const { data } = await productAPI.getAll(params);
             setProducts(data.data?.products || []);
@@ -54,9 +55,11 @@ export default function Products() {
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-serif font-bold text-gray-900">
-                    {category !== "All" ? category : "All"} Bangles
+                    {ownerFilter ? "🏪 My Shop" : `${category !== "All" ? category : "All"} Bangles`}
                 </h1>
-                <p className="text-gray-400 mt-1">Discover our beautiful collection</p>
+                <p className="text-gray-400 mt-1">
+                    {ownerFilter ? "This is how customers see your shop" : "Discover our beautiful collection"}
+                </p>
             </div>
 
             {/* Search & Filter Bar */}
@@ -96,8 +99,8 @@ export default function Products() {
                         key={cat}
                         onClick={() => handleCategory(cat)}
                         className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${category === cat
-                                ? "bg-gold-500 text-white shadow-md"
-                                : "bg-white text-gray-600 border border-gray-200 hover:border-gold-300 hover:text-gold-600"
+                            ? "bg-gold-500 text-white shadow-md"
+                            : "bg-white text-gray-600 border border-gray-200 hover:border-gold-300 hover:text-gold-600"
                             }`}
                     >
                         {cat}
@@ -140,8 +143,8 @@ export default function Products() {
                                     key={p}
                                     onClick={() => setPage(p)}
                                     className={`w-10 h-10 rounded-lg font-medium transition-all ${page === p
-                                            ? "bg-gold-500 text-white shadow-md"
-                                            : "bg-white text-gray-600 hover:bg-gold-50"
+                                        ? "bg-gold-500 text-white shadow-md"
+                                        : "bg-white text-gray-600 hover:bg-gold-50"
                                         }`}
                                 >
                                     {p}

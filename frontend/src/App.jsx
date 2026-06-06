@@ -13,7 +13,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import MyOrders from "./pages/MyOrders";
 import OwnerDashboard from "./pages/OwnerDashboard";
+import MyShop from "./pages/MyShop";
 import AdminDashboard from "./pages/AdminDashboard";
+import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
@@ -51,6 +53,22 @@ export default function App() {
                                     element={
                                         <ProtectedRoute>
                                             <MyOrders />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/profile"
+                                    element={
+                                        <ProtectedRoute>
+                                            <Profile />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/my-shop"
+                                    element={
+                                        <ProtectedRoute roles={["owner"]}>
+                                            <MyShop />
                                         </ProtectedRoute>
                                     }
                                 />

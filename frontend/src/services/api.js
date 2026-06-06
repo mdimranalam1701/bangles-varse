@@ -32,12 +32,16 @@ API.interceptors.response.use(
 export const authAPI = {
     register: (data) => API.post("/auth/register", data),
     login: (data) => API.post("/auth/login", data),
+    getProfile: () => API.get("/auth/profile"),
+    updateProfile: (data) => API.put("/auth/profile", data),
 };
 
 // ── Products ──────────────────────────────────────
 export const productAPI = {
     getAll: (params) => API.get("/products", { params }),
+    getOwnerProducts: () => API.get("/products/owner"),
     create: (data) => API.post("/products", data),
+    update: (id, data) => API.put(`/products/${id}`, data),
     delete: (id) => API.delete(`/products/${id}`),
 };
 
@@ -52,6 +56,7 @@ export const cartAPI = {
 export const orderAPI = {
     create: (data) => API.post("/orders", data),
     getMy: () => API.get("/orders/my"),
+    getOwnerOrders: () => API.get("/orders/owner"),
     getAll: () => API.get("/orders"),
 };
 
@@ -82,12 +87,30 @@ export const notificationAPI = {
 // ── Transactions ──────────────────────────────────
 export const transactionAPI = {
     getMy: () => API.get("/transaction/my"),
+    getOwnerTransactions: () => API.get("/transaction/owner"),
     getAll: () => API.get("/transaction"),
 };
 
 // ── Dashboard ─────────────────────────────────────
 export const dashboardAPI = {
     getOwner: () => API.get("/dashboard/owner"),
+};
+
+// ── Admin ─────────────────────────────────────────
+export const adminAPI = {
+    getStats: () => API.get("/admin/stats"),
+    getAllUsers: () => API.get("/admin/users"),
+    getUsersByRole: (role) => API.get(`/admin/users/role/${role}`),
+    approveOwner: (id) => API.put(`/admin/users/${id}/approve`),
+    rejectOwner: (id) => API.put(`/admin/users/${id}/reject`),
+    deleteUser: (id) => API.delete(`/admin/users/${id}`),
+};
+
+// ── Upload ────────────────────────────────────────
+export const uploadAPI = {
+    image: (formData) => API.post("/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    }),
 };
 
 export default API;

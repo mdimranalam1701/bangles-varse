@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { authAPI } from "../services/api";
@@ -10,7 +10,20 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    const fetchProfile = useCallback(async () => {
+        try {
+            const { data } = await authAPI.getProfile();
+            const fullUser = data.data;
+            localStorage.setItem("user", JSON.stringify(fullUser));
+            setUser(fullUser);
+            return fullUser;
+        } catch {
+            return null;
+        }
+    }, []);
+
     useEffect(() => {
+        const token = localStorage.getItem("token");
         const stored = localStorage.getItem("user");
         if (stored) {
             try {
@@ -19,8 +32,12 @@ export function AuthProvider({ children }) {
                 localStorage.removeItem("user");
             }
         }
+        // If token exists, fetch fresh profile (includes profilePicture)
+        if (token) {
+            fetchProfile();
+        }
         setLoading(false);
-    }, []);
+    }, [fetchProfile]);
 
     const login = async (email, password) => {
         try {
@@ -29,6 +46,8 @@ export function AuthProvider({ children }) {
             localStorage.setItem("token", token);
             localStorage.setItem("user", JSON.stringify(u));
             setUser(u);
+            // Fetch full profile to get profilePicture
+            fetchProfile();
             toast.success(`Welcome back, ${u.name}!`);
             if (u.role === "owner") navigate("/owner/dashboard");
             else if (u.role === "admin") navigate("/admin/dashboard");
@@ -61,7 +80,7 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser: fetchProfile }}>
             {children}
         </AuthContext.Provider>
     );

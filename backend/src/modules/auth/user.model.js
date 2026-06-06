@@ -19,6 +19,30 @@ const userSchema = new mongoose.Schema({
         enum: ["user", "owner", "admin"],
         default: "user",
     },
+    profilePicture: {
+        type: String,
+        default: "",
+    },
+    phone: {
+        type: String,
+        default: "",
+    },
+    bio: {
+        type: String,
+        default: "",
+    },
+    companyName: {
+        type: String,
+        default: "",
+    },
+    address: {
+        type: String,
+        default: "",
+    },
+    isApproved: {
+        type: Boolean,
+        default: false,
+    },
 
 }, { timestamps: true });
 

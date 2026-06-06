@@ -37,6 +37,15 @@ export const getMyOrders = async (req, res) => {
   }
 };
 
+export const getOwnerOrders = async (req, res) => {
+  try {
+    const orders = await orderService.getOwnerOrders(req.user._id);
+    res.json({ success: true, data: orders });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 export const getAllOrders = async (req, res) => {
   try {
     const orders = await orderService.getAllOrders();

@@ -9,6 +9,13 @@ import {
 
 const router = express.Router();
 
-router.get("/owner",isAuth,authorizeRoles("owner"),getOwnerDashboard);
+router.get("/owner", isAuth, authorizeRoles("owner"), async (req, res) => {
+    try {
+        const data = await getOwnerDashboard(req.user._id);
+        res.json({ success: true, data });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
 
 export default router;

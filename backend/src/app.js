@@ -4,6 +4,7 @@ import cors from "cors";
 //import middleware
 import { isAuth, authorizeRoles } from "./middleware/auth.middleware.js";
 
+import authRoutes from "./modules/auth/auth.routes.js";
 import productRoutes from "./modules/product/product.routes.js";
 import orderRoutes from "./modules/order/order.route.js";
 import creditRoutes from "./modules/credit/credit.route.js";
@@ -13,6 +14,8 @@ import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import cartRoutes from "./modules/cart/cart.routes.js";
 import reviewRoutes from "./modules/review/review.routes.js";
 import paymentRoutes from "./modules/payment/payment.routes.js";
+import adminRoutes from "./modules/admin/admin.routes.js";
+import uploadRoutes from "./modules/upload/upload.routes.js";
 
 
 
@@ -29,7 +32,7 @@ app.get("/", (req, res) => {
 
 
 //logged-in user
-app.get("./api/test/user", isAuth, (req, res) => {
+app.get("/api/test/user", isAuth, (req, res) => {
     res.json({
         message: "User accessed",
         user: req.user,
@@ -51,6 +54,7 @@ app.get("/api/test/owner", isAuth, authorizeRoles("owner"), (req, res) => {
 });
 
 
+app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/credit", creditRoutes);
@@ -59,6 +63,8 @@ app.use("/api/transaction", transactionRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/reviews", reviewRoutes);
-app.use("/api/payments",paymentRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/upload", uploadRoutes);
 
 export default app;

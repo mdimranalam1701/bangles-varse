@@ -4,17 +4,17 @@ const notificationSchema = new mongoose.Schema(
     {
         receiver: {
             type: mongoose.Schema.Types.ObjectId,
-            ref:"User",
+            ref: "User",
         },
-        title:String,
-        message:String,
+        title: String,
+        message: String,
 
-        isread : {
+        isread: {
             type: Boolean,
             default: false,
         },
     },
-    { timestamp:true }
+    { timestamps: true }
 );
 
 export const Notification = mongoose.model(

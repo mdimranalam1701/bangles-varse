@@ -6,7 +6,7 @@ export const createTransaction = async ({
     amount,
     type,
     note,
-}) =>{
+}) => {
     return await Transaction.create({
         user,
         owner,
@@ -16,17 +16,23 @@ export const createTransaction = async ({
     });
 };
 
-export const getUserTransactions = async (userId) =>{
+export const getUserTransactions = async (userId) => {
     return await Transaction.find({
         user: userId,
     })
-    .populate("owner","name")
-    .sort({ createdAt: -1});
+        .populate("owner", "name")
+        .sort({ createdAt: -1 });
 };
 
-export const getAllTransaction = async() =>{
+export const getOwnerTransactions = async (ownerId) => {
+    return await Transaction.find({ owner: ownerId })
+        .populate("user", "name")
+        .sort({ createdAt: -1 });
+};
+
+export const getAllTransactions = async () => {
     return await Transaction.find()
-    .populate("user","name")
-    .populate("owner","name")
-    .sort({createdAt: -1});
+        .populate("user", "name")
+        .populate("owner", "name")
+        .sort({ createdAt: -1 });
 };

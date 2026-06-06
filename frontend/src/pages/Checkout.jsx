@@ -146,8 +146,8 @@ export default function Checkout() {
                     <button
                         onClick={() => setPaymentType("cash")}
                         className={`p-4 rounded-xl border-2 text-center transition-all ${paymentType === "cash"
-                                ? "border-gold-500 bg-gold-50"
-                                : "border-gray-200 hover:border-gold-300"
+                            ? "border-gold-500 bg-gold-50"
+                            : "border-gray-200 hover:border-gold-300"
                             }`}
                     >
                         <FiDollarSign size={24} className={`mx-auto mb-2 ${paymentType === "cash" ? "text-gold-600" : "text-gray-400"}`} />
@@ -158,8 +158,8 @@ export default function Checkout() {
                     <button
                         onClick={() => setPaymentType("credit")}
                         className={`p-4 rounded-xl border-2 text-center transition-all ${paymentType === "credit"
-                                ? "border-gold-500 bg-gold-50"
-                                : "border-gray-200 hover:border-gold-300"
+                            ? "border-gold-500 bg-gold-50"
+                            : "border-gray-200 hover:border-gold-300"
                             }`}
                     >
                         <FiCreditCard size={24} className={`mx-auto mb-2 ${paymentType === "credit" ? "text-gold-600" : "text-gray-400"}`} />
