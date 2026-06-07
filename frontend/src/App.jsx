@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import Navbar from "./components/Navbar";
@@ -23,17 +23,19 @@ import Wishlist from "./pages/Wishlist";
 import Notifications from "./pages/Notifications";
 import AddressBook from "./pages/AddressBook";
 import Chat from "./pages/Chat";
+import TransactionHistory from "./pages/TransactionHistory";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-export default function App() {
+function AppContent() {
+    const { user } = useAuth();
+    const isAdmin = user?.role === "admin";
+    const isOwner = user?.role === "owner";
+    const hideNav = isAdmin || isOwner;
+
     return (
-        <BrowserRouter>
-            <AuthProvider>
-                <CartProvider>
-                    <WishlistProvider>
-                    <div className="min-h-screen flex flex-col">
-                        <Navbar />
-                        <main className="flex-1">
+        <div className="min-h-screen flex flex-col">
+            {!hideNav && <Navbar />}
+            <main className={hideNav ? "" : "flex-1"}>
                             <Routes>
                                 <Route path="/" element={<Home />} />
                                 <Route path="/products" element={<Products />} />
@@ -46,6 +48,7 @@ export default function App() {
                                 <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
                                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                                 <Route path="/credit-history" element={<ProtectedRoute><CreditHistory /></ProtectedRoute>} />
+                                <Route path="/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
                                 <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
                                 <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
                                 <Route path="/addresses" element={<ProtectedRoute><AddressBook /></ProtectedRoute>} />
@@ -55,9 +58,19 @@ export default function App() {
                                 <Route path="/owner/dashboard" element={<ProtectedRoute roles={["owner"]}><OwnerDashboard /></ProtectedRoute>} />
                                 <Route path="/admin/dashboard" element={<ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
                             </Routes>
-                        </main>
-                        <Footer />
-                    </div>
+            </main>
+            {!hideNav && <Footer />}
+        </div>
+    );
+}
+
+export default function App() {
+    return (
+        <BrowserRouter>
+            <AuthProvider>
+                <CartProvider>
+                    <WishlistProvider>
+                    <AppContent />
                     <Toaster
                         position="top-right"
                         toastOptions={{

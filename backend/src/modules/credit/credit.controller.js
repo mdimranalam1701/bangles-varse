@@ -32,6 +32,38 @@ export const getApprovals = async (req, res) => {
     }
 };
 
+// block a customer's credit
+export const blockCustomer = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const approval = await creditService.blockCustomerCredit(req.user._id, userId);
+        res.json({ success: true, data: approval, message: "Customer credit blocked" });
+    } catch (err) {
+        res.status(400).json({ success: false, message: err.message });
+    }
+};
+
+// unblock a customer's credit
+export const unblockCustomer = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const approval = await creditService.unblockCustomerCredit(req.user._id, userId);
+        res.json({ success: true, data: approval, message: "Customer credit unblocked" });
+    } catch (err) {
+        res.status(400).json({ success: false, message: err.message });
+    }
+};
+
+// get blocked customers
+export const getBlockedCustomers = async (req, res) => {
+    try {
+        const blocked = await creditService.getBlockedCustomers(req.user._id);
+        res.json({ success: true, data: blocked });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 // get approval status for customer
 export const getApprovalStatus = async (req, res) => {
     try {
@@ -46,8 +78,8 @@ export const getApprovalStatus = async (req, res) => {
 // user buys on credit
 export const addCredit = async (req, res) => {
     try {
-        const { ownerId, amount } = req.body;
-        const credit = await creditService.addCredit(req.user._id, ownerId, amount);
+        const { ownerId, amount, description, orderId } = req.body;
+        const credit = await creditService.addCredit(req.user._id, ownerId, amount, description, orderId);
         res.json({ success: true, data: credit });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });

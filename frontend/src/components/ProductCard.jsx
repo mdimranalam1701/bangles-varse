@@ -15,7 +15,7 @@ export default function ProductCard({ product }) {
             {/* Image */}
             <div className="relative">
                 <Link to={`/products/${product._id}`} className="block relative overflow-hidden">
-                    <div className="aspect-square bg-gradient-to-br from-gold-50 via-gold-100/50 to-gold-50">
+                    <div className="aspect-square bg-gradient-to-br from-amber-50 via-amber-100/50 to-amber-50">
                         {product.image ? (
                             <img
                                 src={product.image}
@@ -31,13 +31,13 @@ export default function ProductCard({ product }) {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     </div>
                     {product.category && (
-                        <span className="absolute top-3 left-3 badge bg-white/90 backdrop-blur-sm text-gold-700 shadow-sm border border-gold-100/50">
+                        <span className="absolute top-3 left-3 badge bg-white/90 backdrop-blur-sm text-amber-700 shadow-sm border border-amber-100/50">
                             {product.category}
                         </span>
                     )}
                     {/* Quick view hint */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
-                        <span className="bg-white/90 backdrop-blur-sm text-gold-700 font-semibold text-sm py-2 px-5 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        <span className="bg-white/90 backdrop-blur-sm text-amber-700 font-semibold text-sm py-2 px-5 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                             View Details
                         </span>
                     </div>
@@ -59,20 +59,20 @@ export default function ProductCard({ product }) {
             {/* Info */}
             <div className="p-5">
                 <Link to={`/products/${product._id}`}>
-                    <h3 className="font-serif font-semibold text-gray-800 group-hover:text-gold-600 transition-colors duration-300 truncate text-lg">
+                    <h3 className="font-serif font-semibold text-gray-800 group-hover:text-amber-600 transition-colors duration-300 truncate text-lg">
                         {product.name}
                     </h3>
                 </Link>
 
                 {product.owner?.name && (
                     <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
-                        <span className="w-3 h-3 bg-gold-100 rounded-full inline-flex items-center justify-center text-[8px]">🏪</span>
+                        <span className="w-3 h-3 bg-amber-100 rounded-full inline-flex items-center justify-center text-[8px]">🏪</span>
                         {product.owner.name}
                     </p>
                 )}
 
                 <div className="flex items-center justify-between mt-3">
-                    <span className="text-xl font-bold bg-gradient-to-r from-gold-600 to-gold-800 bg-clip-text text-transparent">
+                    <span className="text-xl font-bold bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent">
                         ₹{Number(product.price).toLocaleString("en-IN")}
                     </span>
 
@@ -109,7 +109,7 @@ export default function ProductCard({ product }) {
                 {user?.role === "user" && product.stock > 0 && (
                     <button
                         onClick={() => addToCart(product._id)}
-                        className="mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-gold-50 to-gold-100 text-gold-700 font-semibold py-2.5 rounded-xl hover:from-gold-500 hover:to-gold-600 hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-gold-200/50 hover:border-gold-500"
+                        className="mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-gold-50 to-gold-100 text-amber-700 font-semibold py-2.5 rounded-xl hover:from-gold-500 hover:to-gold-600 hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-gold-200/50 hover:border-gold-500"
                     >
                         <FiShoppingCart size={16} />
                         Add to Cart

@@ -82,6 +82,8 @@ export const sendMessage = async (conversationId, senderId, content) => {
                 receiver: receiverId,
                 title: "New Message 💬",
                 message: content.substring(0, 100),
+                link: `/chat/${conversationId}`,
+                referenceId: conversationId,
             });
         }
     }

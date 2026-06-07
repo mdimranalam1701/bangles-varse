@@ -1,12 +1,20 @@
 import { useState, useEffect } from "react";
-import { FiBell, FiCheck, FiCheckCircle, FiTrash2, FiPackage, FiDollarSign, FiUser, FiStar } from "react-icons/fi";
+import { FiBell, FiCheck, FiCheckCircle, FiTrash2, FiPackage, FiDollarSign, FiUser, FiStar, FiArrowLeft } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { notificationAPI } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import { LoadingSpinner, EmptyState } from "../components/UI";
+import AdminLayout from "../components/AdminLayout";
+import OwnerLayout from "../components/OwnerLayout";
 
 export default function Notifications() {
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
+    const isAdmin = user?.role === "admin";
+    const isOwner = user?.role === "owner";
 
     useEffect(() => {
         fetchNotifications();
@@ -73,22 +81,26 @@ export default function Notifications() {
 
     const unreadCount = notifications.filter((n) => !n.isread).length;
 
-    return (
-        <div className="max-w-3xl mx-auto px-4 py-8">
+    const content = (
+        <div className="max-w-3xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-serif font-bold text-gray-900 flex items-center gap-3">
-                        <FiBell className="text-gold-500" /> Notifications
+                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                        <FiBell className={isAdmin ? "text-emerald-500" : "text-gold-500"} /> Notifications
                         {unreadCount > 0 && (
-                            <span className="bg-gold-500 text-white text-sm px-3 py-1 rounded-full font-bold">{unreadCount}</span>
+                            <span className={`${isAdmin ? "bg-emerald-500" : "bg-gold-500"} text-white text-xs px-2.5 py-1 rounded-full font-bold`}>{unreadCount}</span>
                         )}
                     </h1>
-                    <p className="text-gray-400 mt-1">Stay updated with your activity</p>
+                    <p className="text-gray-400 text-sm mt-1">Stay updated with your activity</p>
                 </div>
                 {unreadCount > 0 && (
                     <button
                         onClick={handleMarkAllAsRead}
-                        className="btn-secondary !py-2 !px-4 text-sm flex items-center gap-1.5"
+                        className={`flex items-center gap-1.5 py-2 px-4 text-sm rounded-xl font-medium transition-all ${
+                            isAdmin 
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" 
+                                : "btn-secondary"
+                        }`}
                     >
                         <FiCheck size={14} /> Mark all read
                     </button>
@@ -106,12 +118,22 @@ export default function Notifications() {
                     {notifications.map((n) => (
                         <div
                             key={n._id}
-                            className={`card p-4 flex items-start gap-4 group transition-all duration-200 ${
-                                !n.isread ? "!border-l-4 !border-l-gold-500 bg-gold-50/30" : ""
-                            }`}
+                            onClick={async () => {
+                                if (n.link) {
+                                    if (!n.isread) await handleMarkAsRead(n._id);
+                                    navigate(n.link);
+                                }
+                            }}
+                            className={`bg-white rounded-2xl p-4 flex items-start gap-4 group transition-all duration-200 border ${
+                                !n.isread 
+                                    ? isAdmin ? "border-l-4 border-l-emerald-500 bg-emerald-50/20 border-gray-100" : isOwner ? "border-l-4 border-l-amber-500 bg-amber-50/20 border-gray-100" : "border-l-4 border-l-gold-500 bg-gold-50/30 border-gray-100"
+                                    : "border-gray-100 hover:shadow-sm"
+                            } ${n.link ? "cursor-pointer hover:border-purple-200 hover:shadow-md" : ""}`}
                         >
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                                !n.isread ? "bg-gold-100 text-gold-600" : "bg-gray-100 text-gray-400"
+                                !n.isread 
+                                    ? isAdmin ? "bg-emerald-100 text-emerald-600" : isOwner ? "bg-amber-100 text-amber-600" : "bg-gold-100 text-gold-600"
+                                    : "bg-gray-100 text-gray-400"
                             }`}>
                                 {getIcon(n.title)}
                             </div>
@@ -127,6 +149,11 @@ export default function Notifications() {
                                 <p className={`text-sm mt-1 ${!n.isread ? "text-gray-600" : "text-gray-400"}`}>
                                     {n.message}
                                 </p>
+                                {n.link && (
+                                    <p className="text-xs text-purple-600 font-medium mt-1.5 group-hover:text-purple-700 flex items-center gap-1">
+                                        View Details <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                                    </p>
+                                )}
                             </div>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 {!n.isread && (
@@ -152,4 +179,8 @@ export default function Notifications() {
             )}
         </div>
     );
+
+    if (isAdmin) return <AdminLayout>{content}</AdminLayout>;
+    if (isOwner) return <OwnerLayout>{content}</OwnerLayout>;
+    return <div className="max-w-3xl mx-auto px-4 py-8">{content}</div>;
 }

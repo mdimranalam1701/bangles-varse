@@ -6,6 +6,10 @@ import {
     rejectOwner,
     getAdminStats,
     deleteUser,
+    getOwnerDetail,
+    getCustomerDetail,
+    getOwnersSummary,
+    getCustomersSummary,
 } from "./admin.controller.js";
 
 import { isAuth, authorizeRoles } from "../../middleware/auth.middleware.js";
@@ -18,6 +22,10 @@ router.use(isAuth, authorizeRoles("admin"));
 router.get("/stats", getAdminStats);
 router.get("/users", getAllUsers);
 router.get("/users/role/:role", getUsersByRole);
+router.get("/owners-summary", getOwnersSummary);
+router.get("/customers-summary", getCustomersSummary);
+router.get("/owner/:id", getOwnerDetail);
+router.get("/customer/:id", getCustomerDetail);
 router.put("/users/:id/approve", approveOwner);
 router.put("/users/:id/reject", rejectOwner);
 router.delete("/users/:id", deleteUser);

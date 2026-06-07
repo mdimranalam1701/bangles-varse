@@ -90,6 +90,9 @@ export const creditAPI = {
     get: (ownerId) => API.get(`/credit/${ownerId}`),
     getCustomerAll: () => API.get("/credit/customer-all"),
     getOwnerAll: () => API.get("/credit/owner-all"),
+    blockCustomer: (userId) => API.put(`/credit/block/${userId}`),
+    unblockCustomer: (userId) => API.put(`/credit/unblock/${userId}`),
+    getBlockedCustomers: () => API.get("/credit/blocked"),
 };
 
 // ── Notifications ─────────────────────────────────
@@ -121,6 +124,10 @@ export const adminAPI = {
     approveOwner: (id) => API.put(`/admin/users/${id}/approve`),
     rejectOwner: (id) => API.put(`/admin/users/${id}/reject`),
     deleteUser: (id) => API.delete(`/admin/users/${id}`),
+    getOwnerDetail: (id) => API.get(`/admin/owner/${id}`),
+    getCustomerDetail: (id) => API.get(`/admin/customer/${id}`),
+    getOwnersSummary: () => API.get("/admin/owners-summary"),
+    getCustomersSummary: () => API.get("/admin/customers-summary"),
 };
 
 // ── Upload ────────────────────────────────────────

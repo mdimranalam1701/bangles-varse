@@ -17,6 +17,14 @@ const creditApprovalSchema = new mongoose.Schema(
             enum: ["pending", "approved", "rejected"],
             default: "pending",
         },
+        blocked: {
+            type: Boolean,
+            default: false,
+        },
+        blockedAt: {
+            type: Date,
+            default: null,
+        },
     },
     { timestamps: true }
 );

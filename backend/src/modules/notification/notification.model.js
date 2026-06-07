@@ -8,7 +8,14 @@ const notificationSchema = new mongoose.Schema(
         },
         title: String,
         message: String,
-
+        link: {
+            type: String,
+            default: null,
+        },
+        referenceId: {
+            type: mongoose.Schema.Types.ObjectId,
+            default: null,
+        },
         isread: {
             type: Boolean,
             default: false,

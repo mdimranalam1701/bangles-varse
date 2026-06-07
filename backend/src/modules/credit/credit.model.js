@@ -18,6 +18,15 @@ const creditSchema = new mongoose.Schema(
                     enum: ["credit", "payment"],
                 },
                 amount: Number,
+                description: {
+                    type: String,
+                    default: "",
+                },
+                orderId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "Order",
+                    default: null,
+                },
                 date: {
                     type: Date,
                     default: Date.now,

@@ -16,7 +16,7 @@ export default function Home() {
     return (
         <div>
             {/* Hero Section */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-gold-50 via-white to-burgundy-50 min-h-[85vh] flex items-center">
+            <section className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-white to-purple-50/30 min-h-[85vh] flex items-center">
                 {/* Decorative floating elements */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute top-20 left-10 w-72 h-72 bg-gold-300/20 rounded-full blur-3xl animate-pulse" />
@@ -31,13 +31,13 @@ export default function Home() {
                 <div className="relative max-w-7xl mx-auto px-4 py-20 md:py-32">
                     <div className="grid md:grid-cols-2 gap-12 items-center">
                         <div className="animate-fade-in-up">
-                            <span className="inline-flex items-center gap-2 bg-gradient-to-r from-gold-100 to-gold-50 text-gold-700 px-5 py-2 rounded-full text-sm font-semibold mb-6 border border-gold-200/50 shadow-sm">
-                                <span className="animate-sparkle">✨</span> New Collection 2026
+                            <span className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-100 to-amber-50 text-amber-800 px-5 py-2 rounded-full text-sm font-semibold mb-6 border border-amber-200/50 shadow-sm">
+                                <span className="animate-sparkle">✨</span> Royal Collection 2026
                             </span>
                             <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold text-gray-900 leading-[1.1]">
                                 Adorn Your
-                                <span className="block bg-gradient-to-r from-gold-500 via-gold-600 to-gold-700 bg-clip-text text-transparent mt-1">
-                                    Beautiful Wrists
+                                <span className="block bg-gradient-to-r from-amber-500 via-yellow-600 to-amber-700 bg-clip-text text-transparent mt-1">
+                                    Royal Wrists
                                 </span>
                             </h1>
                             <p className="mt-6 text-lg md:text-xl text-gray-500 leading-relaxed max-w-lg">
@@ -158,23 +158,23 @@ export default function Home() {
             </section>
 
             {/* CTA */}
-            <section className="py-24 bg-gradient-to-r from-gold-500 via-gold-600 to-gold-700 relative overflow-hidden">
+            <section className="py-24 bg-gradient-to-r from-purple-900 via-purple-800 to-purple-900 relative overflow-hidden">
                 {/* Decorative */}
                 <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute top-10 left-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
                     <div className="absolute bottom-10 right-20 w-60 h-60 bg-white/5 rounded-full blur-3xl" />
                 </div>
                 <div className="relative max-w-3xl mx-auto text-center px-4">
-                    <span className="inline-block text-gold-200 text-sm font-semibold tracking-widest uppercase mb-4">Limited Time Offer</span>
+                    <span className="inline-block text-amber-300 text-sm font-semibold tracking-widest uppercase mb-4">✨ Exclusive Offer</span>
                     <h2 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight">
-                        Start Your Collection Today
+                        Start Your Royal Collection
                     </h2>
-                    <p className="text-gold-100 mt-5 text-lg md:text-xl leading-relaxed">
-                        Join thousands of happy customers who trust Bangels Verse for their jewelry needs.
+                    <p className="text-purple-200 mt-5 text-lg md:text-xl leading-relaxed">
+                        Join thousands of happy customers who trust Bangels Verse for their jewellery needs.
                     </p>
                     <Link
                         to="/register"
-                        className="inline-flex items-center gap-2 mt-10 bg-white text-gold-700 font-bold py-4 px-10 rounded-xl hover:bg-gold-50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 text-lg"
+                        className="inline-flex items-center gap-2 mt-10 bg-gradient-to-r from-amber-400 to-amber-600 text-purple-950 font-bold py-4 px-10 rounded-xl hover:from-amber-300 hover:to-amber-500 transition-all duration-300 shadow-xl shadow-amber-500/30 hover:shadow-2xl hover:-translate-y-1 text-lg"
                     >
                         Create Account <FiArrowRight />
                     </Link>

@@ -4,6 +4,8 @@ import toast from "react-hot-toast";
 import { authAPI, uploadAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { LoadingSpinner } from "../components/UI";
+import AdminLayout from "../components/AdminLayout";
+import OwnerLayout from "../components/OwnerLayout";
 
 export default function Profile() {
     const { user: authUser, refreshUser } = useAuth();
@@ -110,18 +112,25 @@ export default function Profile() {
     const isOwner = profile?.role === "owner";
     const isAdmin = profile?.role === "admin";
     const roleLabel = isAdmin ? "👑 Admin" : isOwner ? "🏪 Shop Owner" : "🛍️ Customer";
-    const roleColor = isAdmin ? "bg-red-100 text-red-700" : isOwner ? "bg-purple-100 text-purple-700" : "bg-gold-100 text-gold-700";
+    const roleColor = isAdmin ? "bg-emerald-100 text-emerald-700" : isOwner ? "bg-purple-100 text-purple-700" : "bg-gold-100 text-gold-700";
 
-    return (
-        <div className="max-w-3xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-serif font-bold text-gray-900 mb-8">My Profile</h1>
+    const content = (
+        <div className="max-w-3xl mx-auto">
+            <div className="mb-8">
+                <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
+                <p className="text-gray-400 text-sm mt-1">Manage your account settings</p>
+            </div>
 
             {/* Profile Header Card */}
-            <div className="card p-8 mb-6 !shadow-xl !shadow-gold-100/20 border border-gold-100/30 bg-gradient-to-br from-white to-gold-50/30">
+            <div className={`card p-8 mb-6 border ${isAdmin ? "border-gray-100 bg-white" : "!shadow-xl !shadow-gold-100/20 border-gold-100/30 bg-gradient-to-br from-white to-gold-50/30"}`}>
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                     {/* Profile Picture with Edit Overlay */}
                     <div className="relative group">
-                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-white text-5xl font-bold overflow-hidden ring-4 ring-gold-200/60 shadow-xl shadow-gold-200/40 group-hover:ring-gold-400 transition-all duration-300">
+                        <div className={`w-32 h-32 rounded-full flex items-center justify-center text-white text-5xl font-bold overflow-hidden shadow-xl ${
+                            isAdmin 
+                                ? "bg-gradient-to-br from-emerald-500 to-emerald-700 ring-4 ring-emerald-200/60 shadow-emerald-200/40" 
+                                : "bg-gradient-to-br from-gold-400 to-gold-600 ring-4 ring-gold-200/60 shadow-gold-200/40 group-hover:ring-gold-400"
+                        } transition-all duration-300`}>
                             {form.profilePicture ? (
                                 <img src={form.profilePicture} alt="Profile" className="w-full h-full object-cover" />
                             ) : (
@@ -150,7 +159,9 @@ export default function Profile() {
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="absolute -bottom-1 -right-1 w-10 h-10 bg-gradient-to-br from-gold-400 to-gold-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 border-2 border-white"
+                            className={`absolute -bottom-1 -right-1 w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 border-2 border-white ${
+                                isAdmin ? "bg-gradient-to-br from-emerald-500 to-emerald-700" : "bg-gradient-to-br from-gold-400 to-gold-600"
+                            }`}
                         >
                             <FiEdit2 size={14} className="text-white" />
                         </button>
@@ -185,9 +196,9 @@ export default function Profile() {
             </div>
 
             {/* Edit Form */}
-            <form onSubmit={handleSubmit} className="card p-8 !shadow-lg !shadow-gold-100/10 border border-gold-100/20">
-                <h3 className="font-serif font-semibold text-xl text-gray-800 mb-8 flex items-center gap-2">
-                    <FiEdit2 size={18} className="text-gold-500" />
+            <form onSubmit={handleSubmit} className={`card p-8 border ${isAdmin ? "border-gray-100 bg-white" : "!shadow-lg !shadow-gold-100/10 border-gold-100/20"}`}>
+                <h3 className="font-semibold text-xl text-gray-800 mb-8 flex items-center gap-2">
+                    <FiEdit2 size={18} className={isAdmin ? "text-emerald-500" : "text-gold-500"} />
                     Edit Profile
                 </h3>
 
@@ -278,7 +289,11 @@ export default function Profile() {
                 <button
                     type="submit"
                     disabled={saving}
-                    className="btn-primary mt-6 flex items-center gap-2"
+                    className={`mt-6 flex items-center gap-2 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white ${
+                        isAdmin 
+                            ? "bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-200/40" 
+                            : "btn-primary"
+                    }`}
                 >
                     <FiSave size={16} />
                     {saving ? "Saving..." : "Save Changes"}
@@ -286,4 +301,8 @@ export default function Profile() {
             </form>
         </div>
     );
+
+    if (isAdmin) return <AdminLayout>{content}</AdminLayout>;
+    if (isOwner) return <OwnerLayout>{content}</OwnerLayout>;
+    return <div className="max-w-3xl mx-auto px-4 py-8">{content}</div>;
 }

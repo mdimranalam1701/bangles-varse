@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiShoppingCart, FiMenu, FiX, FiUser, FiLogOut, FiPackage, FiGrid, FiHeart, FiBell, FiMessageCircle, FiMapPin } from "react-icons/fi";
+import { FiShoppingCart, FiMenu, FiX, FiUser, FiLogOut, FiPackage, FiGrid, FiHeart, FiBell, FiMessageCircle, FiMapPin, FiDollarSign } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
@@ -33,14 +33,14 @@ export default function Navbar() {
     }, [user]);
 
     return (
-        <nav className="sticky top-0 z-50 glass border-b border-gold-100/60 shadow-sm shadow-gold-100/20">
+        <nav className="sticky top-0 z-50 glass border-b border-amber-100/60 shadow-sm shadow-amber-100/20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <Link to="/" className="flex items-center gap-2.5 group">
                         <span className="text-3xl group-hover:animate-sparkle transition-transform duration-300 group-hover:scale-110">✨</span>
-                        <span className="text-xl font-serif font-bold bg-gradient-to-r from-gold-600 via-gold-500 to-gold-700 bg-clip-text text-transparent tracking-tight">
-                            Bangels Verse
+                        <span className="text-xl font-serif font-bold bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 bg-clip-text text-transparent tracking-tight">
+                            Bangles Verse
                         </span>
                     </Link>
 
@@ -91,9 +91,15 @@ export default function Navbar() {
                                         </Link>
                                         <Link
                                             to="/credit-history"
-                                            className="flex items-center gap-1.5 text-gray-600 hover:text-gold-600 font-medium transition-all duration-200 hover:translate-y-[-1px]"
+                                            className="flex items-center gap-1.5 text-gray-600 hover:text-amber-600 font-medium transition-all duration-200 hover:translate-y-[-1px]"
                                         >
                                             <FiGrid size={15} /> Credits
+                                        </Link>
+                                        <Link
+                                            to="/transactions"
+                                            className="flex items-center gap-1.5 text-gray-600 hover:text-amber-600 font-medium transition-all duration-200 hover:translate-y-[-1px]"
+                                        >
+                                            <FiDollarSign size={15} /> Transactions
                                         </Link>
                                         <Link
                                             to="/wishlist"

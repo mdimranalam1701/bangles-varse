@@ -28,6 +28,17 @@ setIO(io);
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
+  // Chat: Join a conversation room
+  socket.on("joinConversation", (conversationId) => {
+    socket.join(conversationId);
+    console.log(`Socket ${socket.id} joined conversation ${conversationId}`);
+  });
+
+  // Chat: Send message to conversation room
+  socket.on("sendMessage", ({ conversationId, message }) => {
+    socket.to(conversationId).emit("receiveMessage", message);
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected");
   });

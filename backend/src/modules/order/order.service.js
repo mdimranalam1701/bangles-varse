@@ -11,6 +11,7 @@ export const createOrder = async (data, userId) => {
 
     let totalAmount = 0;
     let ownerId = null;
+    const productDetails = [];
 
     // calculate total
     for (let item of items) {
@@ -21,6 +22,7 @@ export const createOrder = async (data, userId) => {
         }
 
         totalAmount += product.price * item.quantity;
+        productDetails.push({ name: product.name, quantity: item.quantity });
 
         // store owner id
         ownerId = product.owner;
@@ -54,13 +56,16 @@ export const createOrder = async (data, userId) => {
             receiver: ownerId,
             title: "New Order Received! 🛒",
             message: `You have a new order worth ₹${totalAmount}. Check your dashboard for details.`,
+            link: `/orders/${order._id}`,
+            referenceId: order._id,
             isread: false,
         });
     }
 
     // add credit for buy_on_credit
     if (paymentType === "buy_on_credit") {
-        await addCredit(userId, ownerId, totalAmount);
+        const description = productDetails.map(p => `${p.name} × ${p.quantity}`).join(", ");
+        await addCredit(userId, ownerId, totalAmount, description, order._id);
     }
 
     return order;
@@ -160,6 +165,8 @@ export const updateOrderStatus = async (orderId, status, note = "", userId = nul
             receiver: order.user._id,
             title: `Order ${status.charAt(0).toUpperCase() + status.slice(1)}`,
             message: statusMessages[status],
+            link: `/orders/${orderId}`,
+            referenceId: orderId,
         });
     }
 
@@ -187,6 +194,8 @@ export const requestReturn = async (orderId, userId, reason) => {
             receiver: ownerId,
             title: "Return Request 📋",
             message: `A customer has requested a return for order #${orderId.toString().slice(-8).toUpperCase()}. Reason: ${reason}`,
+            link: `/orders/${orderId}`,
+            referenceId: orderId,
         });
     }
 
@@ -214,6 +223,8 @@ export const handleReturnRequest = async (orderId, action, adminId) => {
         message: action === "approved"
             ? "Your return request has been approved. Refund will be processed shortly."
             : "Your return request has been rejected. Please contact support.",
+        link: `/orders/${orderId}`,
+        referenceId: orderId,
     });
 
     return order;
@@ -231,6 +242,8 @@ export const updateTracking = async (orderId, trackingNumber, trackingUrl) => {
         receiver: order.user,
         title: "Tracking Info Updated 📦",
         message: `Tracking number: ${trackingNumber}`,
+        link: `/orders/${orderId}`,
+        referenceId: orderId,
     });
 
     return order;

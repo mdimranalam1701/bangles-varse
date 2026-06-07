@@ -64,6 +64,31 @@ export default function CreditHistory() {
         pdf.save(`Credit_History_${shopName.replace(/\s+/g, '_')}.pdf`);
     };
 
+    const getCreditProducts = (entry) => {
+        if (entry?.type !== "credit") return [];
+
+        const desc = (entry.description || "").trim();
+        const isGenericDesc = ["credit purchase", "order on credit", "credit sale"].includes(desc.toLowerCase());
+
+        if (desc && !isGenericDesc) {
+            return desc.split(",").map(p => p.trim()).filter(Boolean).map((p) => {
+                const [name, quantity] = p.split(" × ");
+                return { name: (name || p).trim(), quantity: quantity?.trim() };
+            }).filter(p => p.name);
+        }
+
+        return (entry.orderId?.items || []).map((item) => ({
+            name: item.product?.name,
+            quantity: item.quantity,
+        })).filter(p => p.name);
+    };
+
+    const formatCreditProducts = (entry) => {
+        const products = getCreditProducts(entry);
+        if (products.length === 0) return "Product not recorded";
+        return products.map(p => p.quantity ? `${p.name} × ${p.quantity}` : p.name).join(", ");
+    };
+
     if (loading) return <LoadingSpinner />;
 
     return (
@@ -90,7 +115,6 @@ export default function CreditHistory() {
                                     <h3 className="text-xl font-serif font-bold text-gray-800">
                                         Shop: {ledger.owner?.companyName || ledger.owner?.name || "Unknown"}
                                     </h3>
-                                    <p className="text-sm text-gray-500 mt-1">Outstanding Balance: <span className="font-semibold text-red-500">₹{ledger.balance.toLocaleString("en-IN")}</span></p>
                                 </div>
                                 <div className="flex gap-3">
                                     {ledger.balance > 0 && (
@@ -109,6 +133,20 @@ export default function CreditHistory() {
                                     </button>
                                 </div>
                             </div>
+                            <div className="grid grid-cols-3 gap-3 mb-6">
+                                <div className="bg-red-50 rounded-xl p-3 text-center border border-red-100">
+                                    <p className="text-xs text-gray-500">Credit Used</p>
+                                    <p className="font-bold text-red-500 text-lg">₹{ledger.entries.filter(e => e.type === "credit").reduce((s, e) => s + e.amount, 0).toLocaleString("en-IN")}</p>
+                                </div>
+                                <div className="bg-green-50 rounded-xl p-3 text-center border border-green-100">
+                                    <p className="text-xs text-gray-500">Credit Paid</p>
+                                    <p className="font-bold text-green-600 text-lg">₹{ledger.entries.filter(e => e.type === "payment").reduce((s, e) => s + e.amount, 0).toLocaleString("en-IN")}</p>
+                                </div>
+                                <div className="bg-amber-50 rounded-xl p-3 text-center border border-amber-100">
+                                    <p className="text-xs text-gray-500">Balance</p>
+                                    <p className="font-bold text-amber-700 text-lg">₹{ledger.balance.toLocaleString("en-IN")}</p>
+                                </div>
+                            </div>
 
                             {/* Ledger Table for PDF */}
                             <div id={`ledger-${ledger._id}`} className="bg-white p-4 rounded-xl border border-gray-100">
@@ -119,56 +157,76 @@ export default function CreditHistory() {
                                     <table className="w-full text-left text-sm">
                                         <thead>
                                             <tr className="border-b-2 border-gray-100 text-gray-500">
-                                                <th className="pb-3 font-medium">Date</th>
-                                                <th className="pb-3 font-medium">Type</th>
-                                                <th className="pb-3 font-medium">Method/Note</th>
-                                                <th className="pb-3 font-medium text-right">Amount</th>
-                                                <th className="pb-3 font-medium text-center print:hidden">Action</th>
+                                                <th className="pb-3 font-medium px-2">Date</th>
+                                                <th className="pb-3 font-medium px-2">Product</th>
+                                                <th className="pb-3 font-medium px-2">Description</th>
+                                                <th className="pb-3 font-medium text-right px-2">Credit Used (+)</th>
+                                                <th className="pb-3 font-medium text-right px-2">Credit Paid (−)</th>
+                                                <th className="pb-3 font-medium text-right px-2">Balance</th>
+                                                <th className="pb-3 font-medium text-center print:hidden px-2">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {ledger.entries.map((entry, idx) => (
-                                                <tr key={idx} className="border-b border-gray-50 last:border-0">
-                                                    <td className="py-3 text-gray-600">
-                                                        {new Date(entry.date).toLocaleDateString("en-IN")}
-                                                    </td>
-                                                    <td className="py-3">
-                                                        <StatusBadge status={entry.type} />
-                                                    </td>
-                                                    <td className="py-3 text-gray-500">
-                                                        {entry.type === "payment" 
-                                                            ? `Paid via ${entry.paymentMethod?.toUpperCase() || "CASH"}` 
-                                                            : entry.status === "paid" ? "Credit Purchase (Paid)" : "Credit Purchase"}
-                                                    </td>
-                                                    <td className="py-3 text-right font-medium">
-                                                        <span className={entry.type === "payment" ? "text-green-600" : "text-red-500"}>
-                                                            {entry.type === "payment" ? "-" : "+"}₹{entry.amount.toLocaleString("en-IN")}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-3 text-center print:hidden">
-                                                        {entry.type === "credit" && entry.status === "pending" ? (
-                                                            <button 
-                                                                onClick={() => {
-                                                                    setPayModal({ ...ledger, balance: entry.amount });
-                                                                    setPayForm({ amount: entry.amount, transactionId: "", entryId: entry._id });
-                                                                }}
-                                                                className="text-xs bg-green-500 text-white hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors font-medium shadow-sm"
-                                                            >
-                                                                Pay
-                                                            </button>
-                                                        ) : entry.type === "credit" && entry.status === "paid" ? (
-                                                            <span className="text-xs text-green-600 font-medium">✓ Paid</span>
-                                                        ) : (
-                                                            <span className="text-xs text-gray-300">—</span>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            {(() => {
+                                                let runningBalance = 0;
+                                                return ledger.entries.map((entry, idx) => {
+                                                    if (entry.type === "credit") runningBalance += entry.amount;
+                                                    else runningBalance -= entry.amount;
+                                                    const products = getCreditProducts(entry);
+                                                    return (
+                                                        <tr key={idx} className="border-b border-gray-50 last:border-0 hover:bg-amber-50/30">
+                                                            <td className="py-3 px-2 text-gray-600 whitespace-nowrap">{new Date(entry.date).toLocaleDateString("en-IN")}</td>
+                                                            <td className="py-3 px-2">
+                                                                {entry.type === "payment" ? (
+                                                                    <span className="text-gray-400">—</span>
+                                                                ) : (
+                                                                    <div className="space-y-1">
+                                                                        {products.length > 0 ? products.map((p, i) => {
+                                                                            return (
+                                                                                <div key={i} className="flex items-center gap-1.5">
+                                                                                    <span className="text-[10px]">💎</span>
+                                                                                    <span className="font-medium text-gray-800 text-xs">{p.name}</span>
+                                                                                </div>
+                                                                            );
+                                                                        }) : <span className="font-medium text-gray-800 text-xs">Product not recorded</span>}
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                            <td className="py-3 px-2 text-gray-500">
+                                                                {entry.type === "payment" ? (
+                                                                    <div>
+                                                                        <span className="font-medium text-gray-700">Payment received</span>
+                                                                        <p className="text-xs text-gray-400 mt-0.5">via {entry.paymentMethod?.toUpperCase() || "CASH"}</p>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div>
+                                                                        <span className="font-medium text-gray-700">{formatCreditProducts(entry)}</span>
+                                                                        {entry.status === "paid" && <p className="text-xs text-green-600 mt-0.5">✓ Paid</p>}
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                            <td className="py-3 px-2 text-right font-medium text-red-500">{entry.type === "credit" ? `+₹${entry.amount.toLocaleString("en-IN")}` : "—"}</td>
+                                                            <td className="py-3 px-2 text-right font-medium text-green-600">{entry.type === "payment" ? `-₹${entry.amount.toLocaleString("en-IN")}` : "—"}</td>
+                                                            <td className={`py-3 px-2 text-right font-bold ${runningBalance > 0 ? "text-red-500" : "text-green-600"}`}>₹{runningBalance.toLocaleString("en-IN")}</td>
+                                                            <td className="py-3 px-2 text-center print:hidden">
+                                                                {entry.type === "credit" && entry.status === "pending" ? (
+                                                                    <button onClick={() => { setPayModal({ ...ledger, balance: entry.amount }); setPayForm({ amount: entry.amount, transactionId: "", entryId: entry._id }); }}
+                                                                        className="text-xs bg-green-500 text-white hover:bg-green-600 px-3 py-1.5 rounded-lg transition-colors font-medium shadow-sm">Pay</button>
+                                                                ) : entry.type === "credit" && entry.status === "paid" ? (
+                                                                    <span className="text-xs text-green-600 font-medium">✓ Paid</span>
+                                                                ) : (
+                                                                    <span className="text-xs text-gray-300">—</span>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                });
+                                            })()}
                                         </tbody>
                                         <tfoot>
                                             <tr className="border-t-2 border-gray-100 font-semibold text-gray-800 bg-gray-50">
-                                                <td colSpan="4" className="py-3 px-2 text-right">Final Balance</td>
-                                                <td className="py-3 text-right">₹{ledger.balance.toLocaleString("en-IN")}</td>
+                                                <td colSpan="6" className="py-3 px-2 text-right">Final Balance</td>
+                                                <td className="py-3 px-2 text-right text-red-500">₹{ledger.balance.toLocaleString("en-IN")}</td>
                                             </tr>
                                         </tfoot>
                                     </table>

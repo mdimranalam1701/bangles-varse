@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FiShoppingCart, FiArrowLeft, FiUser } from "react-icons/fi";
+import { FiShoppingCart, FiArrowLeft, FiUser, FiMessageCircle } from "react-icons/fi";
 import toast from "react-hot-toast";
-import { productAPI, reviewAPI } from "../services/api";
+import { productAPI, reviewAPI, chatAPI } from "../services/api";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { StarRating, LoadingSpinner, PriceTag, StatusBadge } from "../components/UI";
@@ -96,7 +96,7 @@ export default function ProductDetail() {
         <div className="max-w-7xl mx-auto px-4 py-8">
             <button
                 onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-gray-500 hover:text-gold-600 mb-6 transition-colors"
+                className="flex items-center gap-2 text-gray-500 hover:text-amber-600 mb-6 transition-colors"
             >
                 <FiArrowLeft /> Back
             </button>
@@ -104,7 +104,7 @@ export default function ProductDetail() {
             <div className="grid md:grid-cols-2 gap-10">
                 {/* Image */}
                 <div className="card overflow-hidden">
-                    <div className="aspect-square bg-gradient-to-br from-gold-50 to-gold-100">
+                    <div className="aspect-square bg-gradient-to-br from-amber-50 to-amber-100">
                         {product.image ? (
                             <img
                                 src={product.image}
@@ -122,7 +122,7 @@ export default function ProductDetail() {
                 {/* Details */}
                 <div>
                     {product.category && (
-                        <span className="badge bg-gold-100 text-gold-700 mb-3">{product.category}</span>
+                        <span className="badge bg-amber-100 text-amber-700 mb-3">{product.category}</span>
                     )}
                     <h1 className="text-3xl font-serif font-bold text-gray-900">{product.name}</h1>
 
@@ -159,14 +159,14 @@ export default function ProductDetail() {
                             <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="px-4 py-3 hover:bg-gold-50 transition-colors font-medium"
+                                    className="px-4 py-3 hover:bg-amber-50 transition-colors font-medium"
                                 >
                                     −
                                 </button>
                                 <span className="px-4 py-3 font-semibold min-w-[40px] text-center">{quantity}</span>
                                 <button
                                     onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                                    className="px-4 py-3 hover:bg-gold-50 transition-colors font-medium"
+                                    className="px-4 py-3 hover:bg-amber-50 transition-colors font-medium"
                                 >
                                     +
                                 </button>
@@ -177,9 +177,23 @@ export default function ProductDetail() {
                             </button>
                         </div>
                     )}
+                    {/* Chat with Shop */}
+                    {user?.role === "user" && product.owner?._id && (
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const { data } = await chatAPI.startConversation({ ownerId: product.owner._id, productId: product._id });
+                                    navigate(`/chat/${data.data._id}`);
+                                } catch { toast.error("Failed to start chat"); }
+                            }}
+                            className="mt-3 w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-amber-300 text-amber-700 rounded-xl font-medium hover:bg-amber-50 transition-all"
+                        >
+                            <FiMessageCircle size={18} /> Chat with Shop
+                        </button>
+                    )}
                     {!user && (
-                        <div className="mt-6 p-4 bg-gold-50 rounded-xl">
-                            <p className="text-gold-700">
+                        <div className="mt-6 p-4 bg-amber-50 rounded-xl">
+                            <p className="text-amber-700">
                                 <a href="/login" className="font-semibold underline">Login</a> to purchase this item
                             </p>
                         </div>
@@ -222,7 +236,7 @@ export default function ProductDetail() {
                         {reviews.map((r) => (
                             <div key={r._id} className="card p-5">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-9 h-9 bg-gold-100 rounded-full flex items-center justify-center text-gold-600 font-bold text-sm">
+                                    <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 font-bold text-sm">
                                         {r.user?.name?.[0]?.toUpperCase() || "U"}
                                     </div>
                                     <div>

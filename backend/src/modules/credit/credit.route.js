@@ -12,6 +12,11 @@ router.get("/approval-status/:ownerId", authorizeRoles("user"), creditController
 router.put("/approve/:approvalId", authorizeRoles("owner"), creditController.approveCredit);
 router.get("/approvals", authorizeRoles("owner"), creditController.getApprovals);
 
+// Block/Unblock Customer Credit
+router.put("/block/:userId", authorizeRoles("owner"), creditController.blockCustomer);
+router.put("/unblock/:userId", authorizeRoles("owner"), creditController.unblockCustomer);
+router.get("/blocked", authorizeRoles("owner"), creditController.getBlockedCustomers);
+
 // Credits & Payments
 router.post("/add", authorizeRoles("user"), creditController.addCredit);
 router.post("/pay", authorizeRoles("owner"), creditController.payCredit);
