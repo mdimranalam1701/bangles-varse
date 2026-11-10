@@ -5,10 +5,20 @@ const notificationSchema = new mongoose.Schema(
         receiver: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
+            required: true,
+            index: true,
         },
         title: String,
         message: String,
-
+        type: {
+            type: String,
+            enum: ["order", "approval", "credit", "system"],
+            default: "system",
+        },
+        link: {
+            type: String,
+            default: "",
+        },
         isread: {
             type: Boolean,
             default: false,
@@ -17,7 +27,6 @@ const notificationSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-export const Notification = mongoose.model(
-    "Notification",
-    notificationSchema
-);
+notificationSchema.index({ receiver: 1, createdAt: -1 });
+
+export const Notification = mongoose.model("Notification", notificationSchema);

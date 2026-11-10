@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { Product } from "../product/product.model.js";
 
 const cartSchema = new mongoose.Schema(
     {
@@ -7,18 +6,23 @@ const cartSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             unique: true,
+            required: true,
         },
-
         items: [
             {
-                Product: {
+                product: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: "Product",
+                    required: true,
                 },
-
+                size: {
+                    type: String,
+                    default: "2.6",
+                },
                 quantity: {
                     type: Number,
                     default: 1,
+                    min: 1,
                 },
             },
         ],

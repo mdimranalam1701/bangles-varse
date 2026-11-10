@@ -1,12 +1,14 @@
-import { Credit } from './credit.model.js';
-import { createTransaction } from '../transaction/transaction.service.js';
+import { Credit } from "./credit.model.js";
+import { createTransaction } from "../transaction/transaction.service.js";
+import { AppError } from "../../utils/errors.js";
 
+export const addCredit = async (userId, ownerId, amount, note = "Order on credit", orderId = null) => {
+    const numericAmount = Number(amount);
+    if (!numericAmount || numericAmount <= 0) {
+        throw new AppError("Credit amount must be positive", 400, "INVALID_AMOUNT");
+    }
 
-
-//add credit (when user buy on credit)
-export const addCredit = async (userId, ownerId, amount) => {
     let credit = await Credit.findOne({ user: userId, owner: ownerId });
-
     if (!credit) {
         credit = await Credit.create({
             user: userId,
@@ -18,61 +20,71 @@ export const addCredit = async (userId, ownerId, amount) => {
 
     credit.entries.push({
         type: "credit",
-        amount,
+        amount: numericAmount,
+        note,
+        ...(orderId ? { orderId } : {}),
     });
-
-
-    credit.balance += amount;
-
+    credit.balance += numericAmount;
     await credit.save();
 
-    //transaction entry
     await createTransaction({
         user: userId,
         owner: ownerId,
-        amount,
+        amount: numericAmount,
         type: "credit",
-        note: "Order on credit",
+        note,
     });
 
     return credit;
 };
 
-//pay credit
+export const payCredit = async (userId, ownerId, amount, note = "Khata payment") => {
+    const numericAmount = Number(amount);
+    if (!numericAmount || numericAmount <= 0) {
+        throw new AppError("Payment amount must be greater than 0", 400, "INVALID_AMOUNT");
+    }
 
-export const payCredit = async (userId, ownerId, amount) => {
     const credit = await Credit.findOne({ user: userId, owner: ownerId });
-
     if (!credit) {
-        throw new Error("No credit found");
+        throw new AppError("No khata ledger found with this shop", 404, "CREDIT_NOT_FOUND");
     }
 
     credit.entries.push({
         type: "payment",
-        amount,
+        amount: numericAmount,
+        note,
     });
-
-    credit.balance -= amount;
-
+    credit.balance = Math.max(0, credit.balance - numericAmount);
     await credit.save();
 
-    //transaction entry
     await createTransaction({
         user: userId,
         owner: ownerId,
-        amount,
+        amount: numericAmount,
         type: "payment",
-        note: "Credit payment",
+        note,
     });
-
 
     return credit;
 };
 
-//get credit ledger
-
 export const getCredit = async (userId, ownerId) => {
     return await Credit.findOne({ user: userId, owner: ownerId })
-        .populate("user", "name")
-        .populate("owner", "name");
+        .populate("user", "name phone")
+        .populate("owner", "name companyName phone")
+        .lean();
+};
+
+export const getUserCredits = async (userId) => {
+    return await Credit.find({ user: userId })
+        .populate("owner", "name companyName phone whatsappNumber")
+        .sort({ updatedAt: -1 })
+        .lean();
+};
+
+export const getOwnerCreditLedgers = async (ownerId) => {
+    return await Credit.find({ owner: ownerId })
+        .populate("user", "name phone email address city")
+        .sort({ balance: -1, updatedAt: -1 })
+        .lean();
 };

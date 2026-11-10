@@ -1,76 +1,33 @@
 import * as cartService from "./cart.service.js";
+import { asyncHandler } from "../../utils/errors.js";
 
-// add item
-export const addToCart = async (req, res) => {
-  try {
+export const addToCart = asyncHandler(async (req, res) => {
+    const { productId, quantity, size } = req.body;
+    const cart = await cartService.addToCart(req.user._id, productId, quantity, size);
+    res.json({ success: true, data: cart });
+});
 
-    const { productId, quantity } = req.body;
+export const updateCart = asyncHandler(async (req, res) => {
+    const { productId, quantity, size } = req.body;
+    const cart = await cartService.updateCartQuantity(req.user._id, productId, quantity, size);
+    res.json({ success: true, data: cart });
+});
 
-    const cart = await cartService.addToCart(
-      req.user._id,
-      productId,
-      quantity
-    );
+export const getCart = asyncHandler(async (req, res) => {
+    const cart = await cartService.getCart(req.user._id);
+    res.json({ success: true, data: cart });
+});
 
-    res.json({
-      success: true,
-      data: cart,
-    });
-
-  } catch (err) {
-
-    res.status(400).json({
-      success: false,
-      message: err.message,
-    });
-
-  }
-};
-
-// get cart
-export const getCart = async (req, res) => {
-  try {
-
-    const cart = await cartService.getCart(
-      req.user._id
-    );
-
-    res.json({
-      success: true,
-      data: cart,
-    });
-
-  } catch (err) {
-
-    res.status(500).json({
-      success: false,
-      message: err.message,
-    });
-
-  }
-};
-
-// remove item
-export const removeFromCart = async (req, res) => {
-  try {
-
-    const cart =
-      await cartService.removeFromCart(
+export const removeFromCart = asyncHandler(async (req, res) => {
+    const cart = await cartService.removeFromCart(
         req.user._id,
-        req.params.productId
-      );
+        req.params.productId,
+        req.query.size
+    );
+    res.json({ success: true, data: cart });
+});
 
-    res.json({
-      success: true,
-      data: cart,
-    });
-
-  } catch (err) {
-
-    res.status(400).json({
-      success: false,
-      message: err.message,
-    });
-
-  }
-};
+export const clearCart = asyncHandler(async (req, res) => {
+    const cart = await cartService.clearCart(req.user._id);
+    res.json({ success: true, data: cart });
+});
