@@ -7,13 +7,13 @@ import { resolveAssetUrl } from "../services/api";
 import { LoadingSpinner, EmptyState, PriceTag } from "../components/UI";
 
 export default function Wishlist() {
-    const { wishlist, loading, toggleWishlist } = useWishlist();
+    const { wishlistItems, loading, toggleWishlist } = useWishlist();
     const { addToCart } = useCart();
     const { openQuickOrder, isHindi } = useLang();
 
     if (loading) return <LoadingSpinner />;
 
-    if (wishlist.length === 0) {
+    if (wishlistItems.length === 0) {
         return (
             <div className="max-w-4xl mx-auto px-4 py-16">
                 <EmptyState
@@ -37,10 +37,10 @@ export default function Wishlist() {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 className="text-3xl font-serif font-bold text-ink mb-6">
-                {isHindi ? "मेरी पसंदीदा चूड़ियाँ" : "Saved Wishlist"} ({wishlist.length})
+                {isHindi ? "मेरी पसंदीदा चूड़ियाँ" : "Saved Wishlist"} ({wishlistItems.length})
             </h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {wishlist.map((p) => (
+                {wishlistItems.map((p) => (
                     <div key={p._id} className="card flex flex-col justify-between">
                         <div>
                             <Link to={`/products/${p._id}`} className="block aspect-square bg-linen overflow-hidden">

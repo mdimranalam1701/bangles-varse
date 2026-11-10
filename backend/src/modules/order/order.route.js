@@ -37,6 +37,7 @@ const createOrderSchema = z.object({
     customerPhone: z.string().trim().max(20).optional(),
     shippingAddress: addressSchema.optional(),
     notes: z.string().trim().max(400).optional(),
+    couponCode: z.string().trim().max(40).optional(),
     source: z.enum(["cart", "quick_order", "whatsapp"]).optional(),
     idempotencyKey: z.string().trim().max(120).optional(),
 });

@@ -11,7 +11,7 @@ import {
     CheckCircle2,
     Ruler,
 } from "lucide-react";
-import { productAPI } from "../services/api";
+import { productAPI, announcementAPI } from "../services/api";
 import { useLang } from "../context/LangContext";
 import ProductCard from "../components/ProductCard";
 import { ProductGridSkeleton } from "../components/UI";
@@ -27,6 +27,7 @@ const CATEGORY_SHOWCASE = [
 
 export default function Home() {
     const [featured, setFeatured] = useState([]);
+    const [announcement, setAnnouncement] = useState(null);
     const [loading, setLoading] = useState(true);
     const { t, isHindi, storeConfig, openSizeGuide } = useLang();
 
@@ -38,12 +39,25 @@ export default function Home() {
             })
             .catch(() => setFeatured([]))
             .finally(() => setLoading(false));
+
+        announcementAPI
+            .getPublic()
+            .then(({ data }) => {
+                if (data?.data?.length) setAnnouncement(data.data[0]);
+            })
+            .catch(() => {});
     }, []);
 
     const waNumber = String(storeConfig.supportWhatsapp || "919876543210").replace(/\D/g, "");
 
     return (
         <div>
+            {announcement && (
+                <div className="bg-brass-50 border-b border-brass-200 px-4 py-2.5 text-center text-xs sm:text-sm text-ink">
+                    <span className="font-bold text-sindoor-700 mr-2">{announcement.title}:</span>
+                    <span>{announcement.message}</span>
+                </div>
+            )}
             {/* Editorial Asymmetric Hero */}
             <section className="bg-ivory border-b border-parchment">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">

@@ -14,7 +14,7 @@ import {
     CheckCircle2,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { productAPI, reviewAPI, resolveAssetUrl } from "../services/api";
+import { productAPI, reviewAPI, chatAPI, resolveAssetUrl } from "../services/api";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
@@ -262,13 +262,32 @@ export default function ProductDetail() {
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 <a href={waHref} target="_blank" rel="noreferrer" className="btn-whatsapp text-sm">
                                     <MessageCircle size={17} /> {t("whatsappOrder")}
                                 </a>
                                 <a href={`tel:${product.owner?.phone || storeConfig.supportPhone}`} className="btn-secondary text-sm">
                                     <Phone size={16} /> {isHindi ? "दुकान पर कॉल करें" : "Call Shop"}
                                 </a>
+                                {user && product.owner?._id && (
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            try {
+                                                const { data } = await chatAPI.startConversation({
+                                                    ownerId: product.owner._id,
+                                                    productId: product._id,
+                                                });
+                                                navigate(`/chat/${data.data._id}`);
+                                            } catch (err) {
+                                                toast.error(err.response?.data?.message || "Could not start chat");
+                                            }
+                                        }}
+                                        className="btn-brass text-sm col-span-2 sm:col-span-1"
+                                    >
+                                        <MessageCircle size={16} /> {isHindi ? "दुकान से चैट करें" : "Chat with Shop"}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )}

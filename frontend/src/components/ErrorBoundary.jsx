@@ -3,11 +3,15 @@ import { Component } from "react";
 export default class ErrorBoundary extends Component {
     constructor(props) {
         super(props);
-        this.state = { hasError: false };
+        this.state = { hasError: false, errorMessage: "" };
     }
 
-    static getDerivedStateFromError() {
-        return { hasError: true };
+    static getDerivedStateFromError(error) {
+        return { hasError: true, errorMessage: error?.message || "" };
+    }
+
+    componentDidCatch(error, info) {
+        console.error("UI ErrorBoundary caught:", error, info);
     }
 
     render() {
@@ -33,4 +37,3 @@ export default class ErrorBoundary extends Component {
         return this.props.children;
     }
 }
-

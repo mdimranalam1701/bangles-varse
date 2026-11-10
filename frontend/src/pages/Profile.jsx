@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { User, Phone, MapPin, Save, Camera, Store, Shield, Edit2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { User, Phone, MapPin, Save, Camera, Store, Shield, Edit2, Heart, Package, MessageCircle, Bell, FileText } from "lucide-react";
 import toast from "react-hot-toast";
 import { authAPI, uploadAPI, resolveAssetUrl } from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -101,6 +102,31 @@ export default function Profile() {
                 {isHindi ? "मेरा प्रोफ़ाइल" : "My Profile"}
             </h1>
 
+            {/* Quick Account Links */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+                {[
+                    { to: "/my-orders", icon: Package, label: isHindi ? "मेरे ऑर्डर" : "My Orders" },
+                    { to: "/wishlist", icon: Heart, label: isHindi ? "पसंदीदा" : "Wishlist" },
+                    { to: "/addresses", icon: MapPin, label: isHindi ? "पते" : "Addresses" },
+                    { to: "/chat", icon: MessageCircle, label: isHindi ? "दुकान चैट" : "Messages" },
+                    { to: "/notifications", icon: Bell, label: isHindi ? "सूचनाएं" : "Notifications" },
+                    { to: "/transactions", icon: FileText, label: isHindi ? "लेन-देन" : "Transactions" },
+                ].map((item) => {
+                    const Icon = item.icon;
+                    return (
+                        <Link
+                            key={item.to}
+                            to={item.to}
+                            className="card p-3.5 flex items-center gap-2.5 text-sm font-semibold text-ink hover:border-sindoor-400 transition-colors"
+                        >
+                            <Icon size={17} className="text-sindoor-600 shrink-0" />
+                            <span>{item.label}</span>
+                        </Link>
+                    );
+                })}
+            </div>
+
+            {/* Profile Header Card */}
             <div className="card p-6 mb-6 flex flex-col sm:flex-row items-center gap-6">
                 <div className="relative group">
                     <div className="w-24 h-24 rounded-full bg-sindoor-600 text-white text-3xl font-serif font-bold flex items-center justify-center overflow-hidden ring-4 ring-linen">

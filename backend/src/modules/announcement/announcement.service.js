@@ -6,16 +6,22 @@ export const createAnnouncement = async (data) => {
 
 export const getActiveAnnouncements = async (userRole) => {
     const now = new Date();
-    const query = {
+    const audience =
+        userRole === "admin" ? "admins" : userRole === "owner" ? "owners" : "users";
+
+    return await Announcement.find({
         isActive: true,
-        $or: [
-            { targetAudience: "all" },
-            { targetAudience: userRole === "admin" ? "admins" : userRole === "owner" ? "owners" : "users" },
+        $and: [
+            { $or: [{ targetAudience: "all" }, { targetAudience: audience }] },
+            {
+                $or: [
+                    { expiresAt: { $exists: false } },
+                    { expiresAt: null },
+                    { expiresAt: { $gt: now } },
+                ],
+            },
         ],
-    };
-    return await Announcement.find(query)
-        .where("expiresAt").gt(now)
-        .sort({ createdAt: -1 });
+    }).sort({ createdAt: -1 });
 };
 
 export const getAllAnnouncements = async () => {

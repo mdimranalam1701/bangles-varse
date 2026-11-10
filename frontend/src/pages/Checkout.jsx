@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
-import { orderAPI, paymentAPI } from "../services/api";
+import { orderAPI, paymentAPI, couponAPI } from "../services/api";
 import { PriceTag } from "../components/UI";
 
 export default function Checkout() {
@@ -20,6 +20,9 @@ export default function Checkout() {
     const [city, setCity] = useState(user?.city || "");
     const [pincode, setPincode] = useState(user?.pincode || "");
     const [paymentType, setPaymentType] = useState("cash");
+    const [couponInput, setCouponInput] = useState("");
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [showCoupon, setShowCoupon] = useState(false);
     const [loading, setLoading] = useState(false);
     const [idemKey] = useState(() => `co_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
 
@@ -35,6 +38,22 @@ export default function Checkout() {
 
     const items = cart?.items || [];
     const total = items.reduce((sum, item) => sum + (item.product?.price || 0) * (item.quantity || 1), 0);
+    const finalTotal = Math.max(0, total - (appliedCoupon?.discount || 0));
+
+    const handleApplyCoupon = async () => {
+        if (!couponInput.trim()) return;
+        try {
+            const { data } = await couponAPI.validate({ code: couponInput.trim(), orderAmount: total });
+            setAppliedCoupon({
+                code: data.data?.coupon?.code || couponInput.trim().toUpperCase(),
+                discount: data.data?.discount || 0,
+            });
+            toast.success(`Coupon applied: ₹${data.data?.discount || 0} off!`);
+        } catch (err) {
+            setAppliedCoupon(null);
+            toast.error(err.response?.data?.message || "Invalid coupon code");
+        }
+    };
 
     if (items.length === 0) {
         return (
@@ -71,6 +90,7 @@ export default function Checkout() {
                 {
                     items: orderItems,
                     paymentType,
+                    couponCode: appliedCoupon?.code || undefined,
                     customerName: customerName.trim(),
                     customerPhone: digits,
                     shippingAddress: { line1: line1.trim(), city: city.trim(), pincode: pincode.trim() },
@@ -212,9 +232,41 @@ export default function Checkout() {
                             </div>
                         ))}
                     </div>
-                    <div className="border-t border-parchment mt-3 pt-3 flex justify-between items-baseline">
-                        <span className="font-bold text-ink">{isHindi ? "कुल राशि" : "Total Payable"}</span>
-                        <PriceTag amount={total} className="text-xl" />
+                    <div className="border-t border-parchment mt-3 pt-3 space-y-2">
+                        {appliedCoupon && (
+                            <div className="flex justify-between text-xs text-emerald-700 font-semibold">
+                                <span>Coupon ({appliedCoupon.code})</span>
+                                <span>−₹{appliedCoupon.discount.toLocaleString("en-IN")}</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between items-baseline">
+                            <span className="font-bold text-ink">{isHindi ? "कुल राशि" : "Total Payable"}</span>
+                            <PriceTag amount={finalTotal} className="text-xl" />
+                        </div>
+                        <div className="pt-1">
+                            {!showCoupon ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCoupon(true)}
+                                    className="text-xs font-semibold text-sindoor-700 hover:underline"
+                                >
+                                    {isHindi ? "कूपन कोड है?" : "Have a promo / coupon code?"}
+                                </button>
+                            ) : (
+                                <div className="flex gap-2 mt-2">
+                                    <input
+                                        type="text"
+                                        value={couponInput}
+                                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                                        placeholder="Enter coupon code"
+                                        className="input-field !min-h-[38px] !py-1.5 text-sm flex-1"
+                                    />
+                                    <button type="button" onClick={handleApplyCoupon} className="btn-secondary !py-1.5 !px-4 !min-h-[38px] text-xs">
+                                        Apply
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -266,7 +318,7 @@ export default function Checkout() {
 
                 <button type="submit" disabled={loading} className="btn-primary w-full text-base py-4">
                     <CheckCircle2 size={18} />
-                    {loading ? t("placingOrder") : `${t("confirmOrder")} — ₹${total.toLocaleString("en-IN")}`}
+                    {loading ? t("placingOrder") : `${t("confirmOrder")} — ₹${finalTotal.toLocaleString("en-IN")}`}
                 </button>
             </form>
         </div>

@@ -7,6 +7,7 @@ import { User } from "../auth/user.model.js";
 import { Order } from "./order.model.js";
 import { addCredit } from "../credit/credit.service.js";
 import { Notification } from "../notification/notification.model.js";
+import * as couponService from "../coupon/coupon.service.js";
 import { AppError, normalizePhone } from "../../utils/errors.js";
 
 const generateOrderCode = () => {
@@ -29,6 +30,7 @@ const buildAndCreateOrder = async ({
     customerPhone,
     shippingAddress,
     notes,
+    couponCode,
     source = "cart",
     idempotencyKey,
     clearUserCart = false,
@@ -103,6 +105,20 @@ const buildAndCreateOrder = async ({
         const owners = Array.from(ownerTotals.keys());
         const orderCode = generateOrderCode();
 
+        let discountAmount = 0;
+        let appliedCouponCode = "";
+        if (couponCode && userId) {
+            try {
+                const res = await couponService.validateCoupon(couponCode, userId, totalAmount);
+                discountAmount = Math.min(totalAmount, res.discount || 0);
+                appliedCouponCode = res.coupon.code;
+                totalAmount = Math.max(0, totalAmount - discountAmount);
+                await couponService.applyCoupon(appliedCouponCode, userId);
+            } catch (couponErr) {
+                throw new AppError(couponErr.message, 400, "INVALID_COUPON");
+            }
+        }
+
         const order = await Order.create({
             orderCode,
             user: userId || undefined,
@@ -118,6 +134,8 @@ const buildAndCreateOrder = async ({
             items: enrichedItems,
             owners,
             totalAmount,
+            couponCode: appliedCouponCode,
+            discountAmount,
             paymentType,
             status: "pending",
             statusHistory: [
@@ -190,6 +208,7 @@ export const createOrder = async (data, user) => {
             pincode: data.shippingAddress?.pincode || user.pincode || "",
         },
         notes: data.notes,
+        couponCode: data.couponCode,
         source: data.source || "cart",
         idempotencyKey: data.idempotencyKey,
         clearUserCart: data.source !== "quick_order",
