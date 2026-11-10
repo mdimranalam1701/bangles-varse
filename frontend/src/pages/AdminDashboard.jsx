@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Users, UserCheck, UserX, ShoppingBag, DollarSign, Package, Trash2, Check, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { adminAPI, orderAPI, transactionAPI } from "../services/api";
@@ -12,7 +13,9 @@ export default function AdminDashboard() {
     const [orders, setOrders] = useState([]);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState("overview");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const tab = searchParams.get("tab") || "overview";
+    const setTab = (nextTab) => setSearchParams(nextTab === "overview" ? {} : { tab: nextTab });
     const [userFilter, setUserFilter] = useState("all");
 
     const fetchData = async () => {

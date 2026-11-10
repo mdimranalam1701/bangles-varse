@@ -90,6 +90,8 @@ export default function ProductDetail() {
         `Namaste! I want to order "${product.name}" (Size ${selectedSize}, Qty ${quantity}) — Rs.${product.price * quantity}`
     )}`;
 
+    const isCustomer = !user || user.role === "user";
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <button
@@ -168,127 +170,145 @@ export default function ProductDetail() {
                         </div>
                     </div>
 
-                    {/* Size Picker */}
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-bold text-ink">{t("selectSize")}</span>
-                            <button
-                                type="button"
-                                onClick={openSizeGuide}
-                                className="text-xs font-semibold text-sindoor-700 hover:underline inline-flex items-center gap-1"
-                            >
-                                <Ruler size={14} /> {t("sizeGuideLink")}
-                            </button>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {sizes.map((s) => (
-                                <button
-                                    key={s}
-                                    type="button"
-                                    onClick={() => setSelectedSize(s)}
-                                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${
-                                        selectedSize === s
-                                            ? "bg-sindoor-600 text-white border-sindoor-600"
-                                            : "bg-white text-ink border-parchment hover:border-sindoor-400"
-                                    }`}
-                                >
-                                    {s}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Stock + Quantity */}
-                    <div className="flex flex-wrap items-center gap-5">
-                        <div>
-                            <span className="text-xs text-umber block mb-1">{t("quantity")}</span>
-                            <div className="flex items-center bg-white border border-parchment rounded-lg">
-                                <button
-                                    type="button"
-                                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                                    aria-label="Decrease quantity"
-                                    className="w-11 h-11 flex items-center justify-center hover:bg-linen"
-                                >
-                                    <Minus size={16} />
-                                </button>
-                                <span className="w-11 text-center font-bold tabular-nums">{quantity}</span>
-                                <button
-                                    type="button"
-                                    onClick={() => setQuantity((q) => Math.min(product.stock || 10, q + 1))}
-                                    aria-label="Increase quantity"
-                                    className="w-11 h-11 flex items-center justify-center hover:bg-linen"
-                                >
-                                    <Plus size={16} />
-                                </button>
+                    {/* Size Picker — Customers set their size; Owners/Admins inspect configured sizes */}
+                    {isCustomer ? (
+                        <>
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-bold text-ink">{t("selectSize")}</span>
+                                    <button
+                                        type="button"
+                                        onClick={openSizeGuide}
+                                        className="text-xs font-semibold text-sindoor-700 hover:underline inline-flex items-center gap-1"
+                                    >
+                                        <Ruler size={14} /> {t("sizeGuideLink")}
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {sizes.map((s) => (
+                                        <button
+                                            key={s}
+                                            type="button"
+                                            onClick={() => setSelectedSize(s)}
+                                            className={`px-4 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${
+                                                selectedSize === s
+                                                    ? "bg-sindoor-600 text-white border-sindoor-600"
+                                                    : "bg-white text-ink border-parchment hover:border-sindoor-400"
+                                            }`}
+                                        >
+                                            {s}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="text-sm">
-                            {product.stock > 0 ? (
-                                <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold">
-                                    <CheckCircle2 size={16} /> {product.stock} {t("inStock")}
-                                </span>
-                            ) : (
-                                <span className="text-red-600 font-semibold">{t("outOfStock")}</span>
+                            {/* Stock + Quantity */}
+                            <div className="flex flex-wrap items-center gap-5">
+                                <div>
+                                    <span className="text-xs text-umber block mb-1">{t("quantity")}</span>
+                                    <div className="flex items-center bg-white border border-parchment rounded-lg">
+                                        <button
+                                            type="button"
+                                            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                                            aria-label="Decrease quantity"
+                                            className="w-11 h-11 flex items-center justify-center hover:bg-linen"
+                                        >
+                                            <Minus size={16} />
+                                        </button>
+                                        <span className="w-11 text-center font-bold tabular-nums">{quantity}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setQuantity((q) => Math.min(product.stock || 10, q + 1))}
+                                            aria-label="Increase quantity"
+                                            className="w-11 h-11 flex items-center justify-center hover:bg-linen"
+                                        >
+                                            <Plus size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="text-sm">
+                                    {product.stock > 0 ? (
+                                        <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold">
+                                            <CheckCircle2 size={16} /> {product.stock} {t("inStock")}
+                                        </span>
+                                    ) : (
+                                        <span className="text-red-600 font-semibold">{t("outOfStock")}</span>
+                                    )}
+                                    <p className="text-xs text-umber mt-0.5 flex items-center gap-1">
+                                        <ShieldCheck size={13} /> {isHindi ? "घर पहुँचने पर नकद भुगतान उपलब्ध" : "Cash on Delivery available"}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Primary CTAs */}
+                            {product.stock > 0 && (
+                                <div className="space-y-3 pt-2">
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => openQuickOrder(product, selectedSize, quantity)}
+                                            className="btn-primary flex-1 text-base py-3.5"
+                                        >
+                                            <Zap size={18} />
+                                            {t("orderNow")} — ₹{(product.price * quantity).toLocaleString("en-IN")}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => addToCart(product._id, quantity, selectedSize)}
+                                            className="btn-secondary py-3.5"
+                                        >
+                                            <ShoppingBag size={18} />
+                                            {t("addToBag")}
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                        <a href={waHref} target="_blank" rel="noreferrer" className="btn-whatsapp text-sm">
+                                            <MessageCircle size={17} /> {t("whatsappOrder")}
+                                        </a>
+                                        <a href={`tel:${product.owner?.phone || storeConfig.supportPhone}`} className="btn-secondary text-sm">
+                                            <Phone size={16} /> {isHindi ? "दुकान पर कॉल करें" : "Call Shop"}
+                                        </a>
+                                        {user && product.owner?._id && (
+                                            <button
+                                                type="button"
+                                                onClick={async () => {
+                                                    try {
+                                                        const { data } = await chatAPI.startConversation({
+                                                            ownerId: product.owner._id,
+                                                            productId: product._id,
+                                                        });
+                                                        navigate(`/chat/${data.data._id}`);
+                                                    } catch (err) {
+                                                        toast.error(err.response?.data?.message || "Could not start chat");
+                                                    }
+                                                }}
+                                                className="btn-brass text-sm col-span-2 sm:col-span-1"
+                                            >
+                                                <MessageCircle size={16} /> {isHindi ? "दुकान से चैट करें" : "Chat with Shop"}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                             )}
-                            <p className="text-xs text-umber mt-0.5 flex items-center gap-1">
-                                <ShieldCheck size={13} /> {isHindi ? "घर पहुँचने पर नकद भुगतान उपलब्ध" : "Cash on Delivery available"}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Primary CTAs */}
-                    {product.stock > 0 && (
-                        <div className="space-y-3 pt-2">
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => openQuickOrder(product, selectedSize, quantity)}
-                                    className="btn-primary flex-1 text-base py-3.5"
-                                >
-                                    <Zap size={18} />
-                                    {t("orderNow")} — ₹{(product.price * quantity).toLocaleString("en-IN")}
-                                </button>
-
-                                {(!user || user.role === "user") && (
-                                    <button
-                                        type="button"
-                                        onClick={() => addToCart(product._id, quantity, selectedSize)}
-                                        className="btn-secondary py-3.5"
-                                    >
-                                        <ShoppingBag size={18} />
-                                        {t("addToBag")}
-                                    </button>
-                                )}
+                        </>
+                    ) : (
+                        <div className="bg-linen/70 border border-parchment rounded-xl p-4 space-y-3 text-sm">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <span className="font-semibold text-ink">
+                                    Available Sizes: <span className="text-sindoor-700">{sizes.join(" · ")}</span>
+                                </span>
+                                <span className={`font-semibold ${product.stock > 0 ? "text-emerald-700" : "text-red-600"}`}>
+                                    {product.stock} in stock
+                                </span>
                             </div>
-
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                <a href={waHref} target="_blank" rel="noreferrer" className="btn-whatsapp text-sm">
-                                    <MessageCircle size={17} /> {t("whatsappOrder")}
-                                </a>
-                                <a href={`tel:${product.owner?.phone || storeConfig.supportPhone}`} className="btn-secondary text-sm">
-                                    <Phone size={16} /> {isHindi ? "दुकान पर कॉल करें" : "Call Shop"}
-                                </a>
-                                {user && product.owner?._id && (
-                                    <button
-                                        type="button"
-                                        onClick={async () => {
-                                            try {
-                                                const { data } = await chatAPI.startConversation({
-                                                    ownerId: product.owner._id,
-                                                    productId: product._id,
-                                                });
-                                                navigate(`/chat/${data.data._id}`);
-                                            } catch (err) {
-                                                toast.error(err.response?.data?.message || "Could not start chat");
-                                            }
-                                        }}
-                                        className="btn-brass text-sm col-span-2 sm:col-span-1"
-                                    >
-                                        <MessageCircle size={16} /> {isHindi ? "दुकान से चैट करें" : "Chat with Shop"}
-                                    </button>
-                                )}
-                            </div>
+                            {user?.role === "owner" && (
+                                <Link to="/owner/dashboard?tab=products" className="btn-primary text-xs !py-2">
+                                    Manage Catalog & Sizes
+                                </Link>
+                            )}
                         </div>
                     )}
                 </div>

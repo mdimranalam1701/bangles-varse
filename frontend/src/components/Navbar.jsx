@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import {
     ShoppingBag,
     Menu,
@@ -11,9 +11,14 @@ import {
     Globe,
     Bell,
     Search,
-    Ruler,
     Home as HomeIcon,
     Heart,
+    Box,
+    BookOpen,
+    MessageCircle,
+    Store,
+    Users,
+    FileText,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
@@ -29,8 +34,13 @@ export default function Navbar() {
 
     const { user, logout } = useAuth();
     const { itemCount } = useCart();
-    const { lang, toggleLang, t, isHindi, storeConfig, openSizeGuide } = useLang();
+    const { lang, toggleLang, t, isHindi, storeConfig } = useLang();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
+
+    const isOwner = user?.role === "owner";
+    const isAdmin = user?.role === "admin";
+    const isCustomer = !user || user.role === "user";
 
     useEffect(() => {
         if (!user) {
@@ -57,24 +67,48 @@ export default function Navbar() {
         }
     };
 
-    const isActive = (path) =>
-        location.pathname === path ? "text-sindoor-700 font-semibold" : "text-ink/80 hover:text-sindoor-700";
+    const currentTab = searchParams.get("tab") || "overview";
+    const isActive = (path, tabMatch) => {
+        if (tabMatch) {
+            return location.pathname === path && currentTab === tabMatch
+                ? "text-sindoor-700 font-semibold"
+                : "text-ink/80 hover:text-sindoor-700";
+        }
+        return location.pathname === path && !searchParams.get("tab")
+            ? "text-sindoor-700 font-semibold"
+            : "text-ink/80 hover:text-sindoor-700";
+    };
+
+    const homeLink = isOwner ? "/owner/dashboard" : isAdmin ? "/admin/dashboard" : "/";
 
     return (
         <>
-            {/* Top Utility Bar: Help Phone + Free Delivery + 1-Tap Bilingual Switch */}
+            {/* Role-Aware Top Utility Bar */}
             <div className="bg-ink text-ivory text-xs py-2 px-4">
                 <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-4">
-                        <span className="hidden sm:inline text-ivory/85">{t("freeShipBanner")}</span>
-                        <a
-                            href={`tel:${storeConfig.supportPhone}`}
-                            className="inline-flex items-center gap-1.5 text-brass-200 hover:text-white font-medium"
-                        >
-                            <Phone size={12} />
-                            <span>{t("needHelpCall")}: {storeConfig.supportPhone}</span>
-                        </a>
-                    </div>
+                    {isCustomer ? (
+                        <div className="flex items-center gap-4">
+                            <span className="hidden sm:inline text-ivory/85">{t("freeShipBanner")}</span>
+                            <a
+                                href={`tel:${storeConfig.supportPhone}`}
+                                className="inline-flex items-center gap-1.5 text-brass-200 hover:text-white font-medium"
+                            >
+                                <Phone size={12} />
+                                <span>{t("needHelpCall")}: {storeConfig.supportPhone}</span>
+                            </a>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-3 text-ivory/90">
+                            <span className="font-semibold text-brass-200">
+                                {isOwner ? "Seller Workspace" : "Admin Workspace"}
+                            </span>
+                            {isOwner && (
+                                <span className="hidden sm:inline text-ivory/70">
+                                    • {user.companyName || user.name} ({user.isApproved ? "Verified Shop" : "Pending Approval"})
+                                </span>
+                            )}
+                        </div>
+                    )}
 
                     <button
                         type="button"
@@ -92,51 +126,77 @@ export default function Navbar() {
             <header className="sticky top-0 z-40 bg-ivory/95 backdrop-blur-md border-b border-parchment">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        <Link to="/" className="flex items-center gap-2.5">
+                        <Link to={homeLink} className="flex items-center gap-2.5">
                             <BrandMark className="w-8 h-8" />
                             <div>
                                 <span className="text-xl sm:text-2xl font-serif font-bold text-ink tracking-tight block leading-none">
                                     {t("brand")}
                                 </span>
                                 <span className="text-[10px] uppercase tracking-widest text-umber hidden sm:block">
-                                    {t("tagline")}
+                                    {isOwner ? "Shop Partner Portal" : isAdmin ? "Platform Control" : t("tagline")}
                                 </span>
                             </div>
                         </Link>
 
-                        {/* Desktop Nav */}
+                        {/* Desktop Nav — Strictly Role-Scoped */}
                         <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-                            <Link to="/products" className={isActive("/products")}>
-                                {t("navShop")}
-                            </Link>
-                            <Link to="/track-order" className={isActive("/track-order")}>
-                                {t("navTrack")}
-                            </Link>
-                            <button
-                                type="button"
-                                onClick={openSizeGuide}
-                                className="text-ink/80 hover:text-sindoor-700 inline-flex items-center gap-1"
-                            >
-                                <Ruler size={14} /> {t("navSizeGuide")}
-                            </button>
-
-                            {user?.role === "owner" && (
-                                <Link to="/owner/dashboard" className={`${isActive("/owner/dashboard")} inline-flex items-center gap-1.5`}>
-                                    <LayoutDashboard size={15} /> {t("navDashboard")}
-                                </Link>
-                            )}
-                            {user?.role === "admin" && (
-                                <Link to="/admin/dashboard" className={`${isActive("/admin/dashboard")} inline-flex items-center gap-1.5`}>
-                                    <LayoutDashboard size={15} /> {t("navAdmin")}
-                                </Link>
-                            )}
-                            {user?.role === "user" && (
+                            {isCustomer && (
                                 <>
-                                    <Link to="/my-orders" className={`${isActive("/my-orders")} inline-flex items-center gap-1.5`}>
-                                        <Package size={15} /> {t("navOrders")}
+                                    <Link to="/products" className={isActive("/products")}>
+                                        {t("navShop")}
                                     </Link>
-                                    <Link to="/wishlist" className={`${isActive("/wishlist")} inline-flex items-center gap-1`}>
-                                        <Heart size={15} /> {isHindi ? "पसंद" : "Saved"}
+                                    <Link to="/track-order" className={isActive("/track-order")}>
+                                        {t("navTrack")}
+                                    </Link>
+                                    {user && (
+                                        <>
+                                            <Link to="/my-orders" className={`${isActive("/my-orders")} inline-flex items-center gap-1.5`}>
+                                                <Package size={15} /> {t("navOrders")}
+                                            </Link>
+                                            <Link to="/wishlist" className={`${isActive("/wishlist")} inline-flex items-center gap-1`}>
+                                                <Heart size={15} /> {isHindi ? "पसंद" : "Saved"}
+                                            </Link>
+                                        </>
+                                    )}
+                                </>
+                            )}
+
+                            {isOwner && (
+                                <>
+                                    <Link to="/owner/dashboard" className={`${isActive("/owner/dashboard", "overview")} inline-flex items-center gap-1.5`}>
+                                        <LayoutDashboard size={15} /> Overview
+                                    </Link>
+                                    <Link to="/owner/dashboard?tab=orders" className={`${isActive("/owner/dashboard", "orders")} inline-flex items-center gap-1.5`}>
+                                        <Package size={15} /> Orders
+                                    </Link>
+                                    <Link to="/owner/dashboard?tab=products" className={`${isActive("/owner/dashboard", "products")} inline-flex items-center gap-1.5`}>
+                                        <Box size={15} /> Catalog
+                                    </Link>
+                                    <Link to="/owner/dashboard?tab=khata" className={`${isActive("/owner/dashboard", "khata")} inline-flex items-center gap-1.5`}>
+                                        <BookOpen size={15} /> Khata
+                                    </Link>
+                                    <Link to="/my-shop" className={`${isActive("/my-shop")} inline-flex items-center gap-1.5`}>
+                                        <Store size={15} /> My Shop
+                                    </Link>
+                                    <Link to="/chat" className={`${isActive("/chat")} inline-flex items-center gap-1.5`}>
+                                        <MessageCircle size={15} /> Messages
+                                    </Link>
+                                </>
+                            )}
+
+                            {isAdmin && (
+                                <>
+                                    <Link to="/admin/dashboard" className={`${isActive("/admin/dashboard", "overview")} inline-flex items-center gap-1.5`}>
+                                        <LayoutDashboard size={15} /> Overview
+                                    </Link>
+                                    <Link to="/admin/dashboard?tab=users" className={`${isActive("/admin/dashboard", "users")} inline-flex items-center gap-1.5`}>
+                                        <Users size={15} /> Shops & Users
+                                    </Link>
+                                    <Link to="/admin/dashboard?tab=orders" className={`${isActive("/admin/dashboard", "orders")} inline-flex items-center gap-1.5`}>
+                                        <Package size={15} /> All Orders
+                                    </Link>
+                                    <Link to="/admin/dashboard?tab=transactions" className={`${isActive("/admin/dashboard", "transactions")} inline-flex items-center gap-1.5`}>
+                                        <FileText size={15} /> Transactions
                                     </Link>
                                 </>
                             )}
@@ -195,7 +255,7 @@ export default function Navbar() {
                                 </div>
                             )}
 
-                            {(!user || user.role === "user") && (
+                            {isCustomer && (
                                 <Link
                                     to="/cart"
                                     aria-label="Shopping Bag"
@@ -203,7 +263,7 @@ export default function Navbar() {
                                 >
                                     <ShoppingBag size={20} />
                                     {itemCount > 0 && (
-                                        <span className="absolute top-1 right-1 bg-sindoor-600 text-white text-[10px] w-4.5 h-4.5 min-w-[18px] px-1 flex items-center justify-center rounded-full font-bold">
+                                        <span className="absolute top-1 right-1 bg-sindoor-600 text-white text-[10px] min-w-[18px] px-1 flex items-center justify-center rounded-full font-bold">
                                             {itemCount}
                                         </span>
                                     )}
@@ -260,37 +320,67 @@ export default function Navbar() {
                     </div>
                 </div>
 
-                {/* Mobile Drawer */}
+                {/* Mobile Drawer — Strictly Role-Scoped */}
                 {open && (
                     <div className="md:hidden bg-white border-t border-parchment px-4 py-4 space-y-2 animate-fade-in">
-                        <Link to="/products" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
-                            {t("navShop")}
-                        </Link>
-                        <Link to="/track-order" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
-                            {t("navTrack")}
-                        </Link>
-                        <button
-                            type="button"
-                            onClick={() => { setOpen(false); openSizeGuide(); }}
-                            className="w-full text-left py-2.5 px-3 rounded-lg hover:bg-linen font-medium"
-                        >
-                            {t("navSizeGuide")}
-                        </button>
+                        {isCustomer && (
+                            <>
+                                <Link to="/products" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                    {t("navShop")}
+                                </Link>
+                                <Link to="/track-order" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                    {t("navTrack")}
+                                </Link>
+                            </>
+                        )}
+                        {isOwner && (
+                            <>
+                                <Link to="/owner/dashboard" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                    Overview
+                                </Link>
+                                <Link to="/owner/dashboard?tab=orders" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                    Orders
+                                </Link>
+                                <Link to="/owner/dashboard?tab=products" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                    Catalog
+                                </Link>
+                                <Link to="/owner/dashboard?tab=khata" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                    Khata Ledgers
+                                </Link>
+                                <Link to="/my-shop" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                    My Shop
+                                </Link>
+                                <Link to="/chat" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                    Messages
+                                </Link>
+                            </>
+                        )}
+                        {isAdmin && (
+                            <>
+                                <Link to="/admin/dashboard" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                    Admin Overview
+                                </Link>
+                                <Link to="/admin/dashboard?tab=users" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                    Shops & Users
+                                </Link>
+                                <Link to="/admin/dashboard?tab=orders" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                    All Orders
+                                </Link>
+                            </>
+                        )}
+
                         {user ? (
                             <>
-                                {user.role === "owner" && (
-                                    <Link to="/owner/dashboard" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
-                                        {t("navDashboard")}
-                                    </Link>
+                                {isCustomer && (
+                                    <>
+                                        <Link to="/my-orders" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                            {t("navOrders")}
+                                        </Link>
+                                        <Link to="/wishlist" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
+                                            {isHindi ? "पसंदीदा" : "Wishlist"}
+                                        </Link>
+                                    </>
                                 )}
-                                {user.role === "admin" && (
-                                    <Link to="/admin/dashboard" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
-                                        {t("navAdmin")}
-                                    </Link>
-                                )}
-                                <Link to="/my-orders" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
-                                    {t("navOrders")}
-                                </Link>
                                 <Link to="/profile" onClick={() => setOpen(false)} className="block py-2.5 px-3 rounded-lg hover:bg-linen font-medium">
                                     {isHindi ? "मेरा प्रोफ़ाइल" : "My Profile"}
                                 </Link>
@@ -316,28 +406,52 @@ export default function Navbar() {
                 )}
             </header>
 
-            {/* Mobile Thumb Bottom Navigation Bar */}
-            <nav
-                aria-label="Mobile bottom navigation"
-                className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-parchment grid grid-cols-4 text-[11px] font-medium text-umber"
-            >
-                <Link to="/" className={`flex flex-col items-center py-2 gap-0.5 ${location.pathname === "/" ? "text-sindoor-700 font-bold" : ""}`}>
-                    <HomeIcon size={18} />
-                    <span>{isHindi ? "होम" : "Home"}</span>
-                </Link>
-                <Link to="/products" className={`flex flex-col items-center py-2 gap-0.5 ${location.pathname === "/products" ? "text-sindoor-700 font-bold" : ""}`}>
-                    <Search size={18} />
-                    <span>{isHindi ? "चूड़ियाँ" : "Bangles"}</span>
-                </Link>
-                <Link to="/track-order" className={`flex flex-col items-center py-2 gap-0.5 ${location.pathname === "/track-order" ? "text-sindoor-700 font-bold" : ""}`}>
-                    <Package size={18} />
-                    <span>{isHindi ? "ऑर्डर" : "Track"}</span>
-                </Link>
-                <a href={`tel:${storeConfig.supportPhone}`} className="flex flex-col items-center py-2 gap-0.5 text-emerald-700 font-semibold">
-                    <Phone size={18} />
-                    <span>{isHindi ? "कॉल मदद" : "Call Help"}</span>
-                </a>
-            </nav>
+            {/* Mobile Thumb Bottom Navigation Bar — Strictly Role-Scoped */}
+            {isCustomer ? (
+                <nav
+                    aria-label="Mobile bottom navigation"
+                    className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-parchment grid grid-cols-4 text-[11px] font-medium text-umber"
+                >
+                    <Link to="/" className={`flex flex-col items-center py-2 gap-0.5 ${location.pathname === "/" ? "text-sindoor-700 font-bold" : ""}`}>
+                        <HomeIcon size={18} />
+                        <span>{isHindi ? "होम" : "Home"}</span>
+                    </Link>
+                    <Link to="/products" className={`flex flex-col items-center py-2 gap-0.5 ${location.pathname === "/products" ? "text-sindoor-700 font-bold" : ""}`}>
+                        <Search size={18} />
+                        <span>{isHindi ? "चूड़ियाँ" : "Bangles"}</span>
+                    </Link>
+                    <Link to="/track-order" className={`flex flex-col items-center py-2 gap-0.5 ${location.pathname === "/track-order" ? "text-sindoor-700 font-bold" : ""}`}>
+                        <Package size={18} />
+                        <span>{isHindi ? "ऑर्डर" : "Track"}</span>
+                    </Link>
+                    <a href={`tel:${storeConfig.supportPhone}`} className="flex flex-col items-center py-2 gap-0.5 text-emerald-700 font-semibold">
+                        <Phone size={18} />
+                        <span>{isHindi ? "कॉल मदद" : "Call Help"}</span>
+                    </a>
+                </nav>
+            ) : isOwner ? (
+                <nav
+                    aria-label="Seller bottom navigation"
+                    className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-parchment grid grid-cols-4 text-[11px] font-medium text-umber"
+                >
+                    <Link to="/owner/dashboard" className={`flex flex-col items-center py-2 gap-0.5 ${location.pathname === "/owner/dashboard" && currentTab === "overview" ? "text-sindoor-700 font-bold" : ""}`}>
+                        <LayoutDashboard size={18} />
+                        <span>Overview</span>
+                    </Link>
+                    <Link to="/owner/dashboard?tab=orders" className={`flex flex-col items-center py-2 gap-0.5 ${currentTab === "orders" ? "text-sindoor-700 font-bold" : ""}`}>
+                        <Package size={18} />
+                        <span>Orders</span>
+                    </Link>
+                    <Link to="/owner/dashboard?tab=products" className={`flex flex-col items-center py-2 gap-0.5 ${currentTab === "products" ? "text-sindoor-700 font-bold" : ""}`}>
+                        <Box size={18} />
+                        <span>Catalog</span>
+                    </Link>
+                    <Link to="/owner/dashboard?tab=khata" className={`flex flex-col items-center py-2 gap-0.5 ${currentTab === "khata" ? "text-sindoor-700 font-bold" : ""}`}>
+                        <BookOpen size={18} />
+                        <span>Khata</span>
+                    </Link>
+                </nav>
+            ) : null}
         </>
     );
 }

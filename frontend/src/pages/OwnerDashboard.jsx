@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
     Plus,
     Trash2,
@@ -92,7 +93,10 @@ export default function OwnerDashboard() {
     const [ledgers, setLedgers] = useState([]);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState("overview");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = searchParams.get("tab") || "overview";
+    const setTab = (nextTab) => setSearchParams(nextTab === "overview" ? {} : { tab: nextTab });
+    const tab = activeTab;
 
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);

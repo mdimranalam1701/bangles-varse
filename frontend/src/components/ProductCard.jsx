@@ -17,6 +17,10 @@ export default function ProductCard({ product }) {
     const title = isHindi && product.nameHi ? product.nameHi : product.name;
     const imgSrc = resolveAssetUrl(product.image || product.images?.[0]) || "/images/products/gold-kada.svg";
     const inStock = product.stock > 0;
+    const isCustomer = !user || user.role === "user";
+    const isOwnProduct =
+        user?.role === "owner" &&
+        (product.owner?._id === user._id || product.owner === user._id || product.owner?._id === user.id);
 
     return (
         <article className="card group flex flex-col justify-between hover:shadow-elevated transition-all duration-300">
@@ -49,7 +53,7 @@ export default function ProductCard({ product }) {
                         </span>
                     )}
                 </Link>
-                {user && (
+                {user && isCustomer && (
                     <button
                         type="button"
                         onClick={() => toggleWishlist(product._id)}
@@ -90,32 +94,50 @@ export default function ProductCard({ product }) {
                             className="text-base"
                         />
                     </div>
+                    {product.sizes?.length > 0 && (
+                        <p className="text-[11px] text-umber mt-1.5 truncate">
+                            {isHindi ? "उपलब्ध नाप:" : "Sizes:"} {product.sizes.join(" · ")}
+                        </p>
+                    )}
                 </div>
             </div>
 
-            {/* Action Buttons: 1-Tap Order Now (always accessible!) + Add to Bag */}
-            <div className="px-4 pb-4 pt-1 flex items-center gap-2">
-                <button
-                    type="button"
-                    disabled={!inStock}
-                    onClick={() => openQuickOrder(product)}
-                    className="btn-primary flex-1 !py-2.5 !px-3 text-sm"
-                >
-                    <Zap size={15} />
-                    {inStock ? t("orderNow") : t("outOfStock")}
-                </button>
-                {(!user || user.role === "user") && inStock && (
+            {/* Action Buttons: Buyers see Quick Order + Bag; Owners/Admin see Stock & Manage */}
+            {isCustomer ? (
+                <div className="px-4 pb-4 pt-1 flex items-center gap-2">
                     <button
                         type="button"
-                        onClick={() => addToCart(product._id, 1, product.sizes?.[0] || "2.6")}
-                        aria-label={t("addToBag")}
-                        title={t("addToBag")}
-                        className="btn-secondary !py-2.5 !px-3"
+                        disabled={!inStock}
+                        onClick={() => openQuickOrder(product)}
+                        className="btn-primary flex-1 !py-2.5 !px-3 text-sm"
                     >
-                        <ShoppingBag size={17} />
+                        <Zap size={15} />
+                        {inStock ? t("orderNow") : t("outOfStock")}
                     </button>
-                )}
-            </div>
+                    {inStock && (
+                        <button
+                            type="button"
+                            onClick={() => addToCart(product._id, 1, product.sizes?.[0] || "2.6")}
+                            aria-label={t("addToBag")}
+                            title={t("addToBag")}
+                            className="btn-secondary !py-2.5 !px-3"
+                        >
+                            <ShoppingBag size={17} />
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <div className="px-4 pb-4 pt-1 flex items-center justify-between gap-2 text-xs">
+                    <span className={`font-semibold ${inStock ? "text-emerald-700" : "text-red-600"}`}>
+                        {inStock ? `${product.stock} in stock` : "Out of stock"}
+                    </span>
+                    {isOwnProduct && (
+                        <Link to="/owner/dashboard?tab=products" className="btn-brass !py-1.5 !px-3 !min-h-[32px] text-xs">
+                            Manage
+                        </Link>
+                    )}
+                </div>
+            )}
         </article>
     );
 }
