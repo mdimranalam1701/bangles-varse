@@ -1,5 +1,20 @@
 import mongoose from "mongoose";
 
+const addressSchema = new mongoose.Schema(
+    {
+        label: { type: String, default: "Home", trim: true },
+        fullName: { type: String, required: true, trim: true },
+        phone: { type: String, required: true, trim: true },
+        street: { type: String, required: true, trim: true },
+        city: { type: String, required: true, trim: true },
+        state: { type: String, default: "", trim: true },
+        pincode: { type: String, default: "", trim: true },
+        country: { type: String, default: "India" },
+        isDefault: { type: Boolean, default: false },
+    },
+    { _id: true }
+);
+
 const userSchema = new mongoose.Schema(
     {
         name: {
@@ -63,6 +78,20 @@ const userSchema = new mongoose.Schema(
             default: "",
             trim: true,
         },
+        upiId: {
+            type: String,
+            default: "",
+            trim: true,
+        },
+        addresses: [addressSchema],
+        recentlyViewed: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Product",
+            },
+        ],
+        shopBanner: { type: String, default: "" },
+        shopDescription: { type: String, default: "" },
         preferredLanguage: {
             type: String,
             enum: ["en", "hi"],

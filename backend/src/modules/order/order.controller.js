@@ -56,3 +56,13 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     const order = await orderService.cancelUserOrder(req.params.id, req.user._id);
     res.json({ success: true, data: order });
 });
+
+export const getOrder = asyncHandler(async (req, res) => {
+    const order = await orderService.getOrderById(req.params.id, req.user);
+    res.json({ success: true, data: order });
+});
+
+export const reorder = asyncHandler(async (req, res) => {
+    const cart = await orderService.reorderToCart(req.params.id, req.user._id);
+    res.json({ success: true, data: cart });
+});

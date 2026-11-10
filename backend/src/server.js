@@ -45,6 +45,16 @@ io.on("connection", (socket) => {
         }
     }
 
+    socket.on("joinConversation", (conversationId) => {
+        if (conversationId) socket.join(conversationId);
+    });
+
+    socket.on("sendMessage", ({ conversationId, message }) => {
+        if (conversationId && message) {
+            socket.to(conversationId).emit("receiveMessage", message);
+        }
+    });
+
     socket.on("disconnect", () => {});
 });
 

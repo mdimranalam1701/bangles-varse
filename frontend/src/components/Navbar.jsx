@@ -13,7 +13,7 @@ import {
     Search,
     Ruler,
     Home as HomeIcon,
-    BookOpen,
+    Heart,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
@@ -131,9 +131,14 @@ export default function Navbar() {
                                 </Link>
                             )}
                             {user?.role === "user" && (
-                                <Link to="/my-orders" className={`${isActive("/my-orders")} inline-flex items-center gap-1.5`}>
-                                    <Package size={15} /> {t("navOrders")}
-                                </Link>
+                                <>
+                                    <Link to="/my-orders" className={`${isActive("/my-orders")} inline-flex items-center gap-1.5`}>
+                                        <Package size={15} /> {t("navOrders")}
+                                    </Link>
+                                    <Link to="/wishlist" className={`${isActive("/wishlist")} inline-flex items-center gap-1`}>
+                                        <Heart size={15} /> {isHindi ? "पसंद" : "Saved"}
+                                    </Link>
+                                </>
                             )}
                         </nav>
 

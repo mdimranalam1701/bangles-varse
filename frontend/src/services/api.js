@@ -82,6 +82,8 @@ export const orderAPI = {
         }),
     track: (params) => API.get("/orders/track", { params }),
     getMy: () => API.get("/orders/my"),
+    getById: (id) => API.get(`/orders/${id}`),
+    reorder: (id) => API.post(`/orders/${id}/reorder`),
     getOwnerOrders: () => API.get("/orders/owner"),
     getAll: () => API.get("/orders"),
     updateStatus: (id, data) => API.patch(`/orders/${id}/status`, data),
@@ -110,7 +112,68 @@ export const creditAPI = {
 export const notificationAPI = {
     get: () => API.get("/notifications"),
     markRead: (id) => API.patch(`/notifications/${id}/read`),
+    markAsRead: (id) => API.patch(`/notifications/${id}/read`),
     markAllRead: () => API.patch("/notifications/read-all"),
+    markAllAsRead: () => API.patch("/notifications/read-all"),
+    delete: (id) => API.delete(`/notifications/${id}`),
+};
+
+export const wishlistAPI = {
+    get: () => API.get("/wishlist"),
+    toggle: (productId) => API.post(`/wishlist/toggle/${productId}`),
+    remove: (productId) => API.delete(`/wishlist/remove/${productId}`),
+    clear: () => API.delete("/wishlist/clear"),
+    check: (productId) => API.get(`/wishlist/check/${productId}`),
+};
+
+export const addressAPI = {
+    get: () => API.get("/addresses"),
+    add: (data) => API.post("/addresses", data),
+    update: (id, data) => API.put(`/addresses/${id}`, data),
+    delete: (id) => API.delete(`/addresses/${id}`),
+    setDefault: (id) => API.put(`/addresses/${id}/default`),
+};
+
+export const couponAPI = {
+    getAll: () => API.get("/coupons"),
+    create: (data) => API.post("/coupons", data),
+    update: (id, data) => API.put(`/coupons/${id}`, data),
+    delete: (id) => API.delete(`/coupons/${id}`),
+    toggle: (id) => API.put(`/coupons/${id}/toggle`),
+    validate: (data) => API.post("/coupons/validate", data),
+};
+
+export const announcementAPI = {
+    getPublic: () => API.get("/announcements/public"),
+    getAll: () => API.get("/announcements"),
+    create: (data) => API.post("/announcements", data),
+    update: (id, data) => API.put(`/announcements/${id}`, data),
+    delete: (id) => API.delete(`/announcements/${id}`),
+};
+
+export const categoryAPI = {
+    getPublic: () => API.get("/categories/public"),
+    getAll: () => API.get("/categories"),
+    create: (data) => API.post("/categories", data),
+    update: (id, data) => API.put(`/categories/${id}`, data),
+    delete: (id) => API.delete(`/categories/${id}`),
+    toggle: (id) => API.put(`/categories/${id}/toggle`),
+};
+
+export const payoutAPI = {
+    getAll: (params) => API.get("/payouts", { params }),
+    create: (data) => API.post("/payouts", data),
+    updateStatus: (id, data) => API.put(`/payouts/${id}/status`, data),
+    getMy: () => API.get("/payouts/my"),
+    getEarnings: () => API.get("/payouts/earnings"),
+};
+
+export const chatAPI = {
+    startConversation: (data) => API.post("/chat/conversation", data),
+    getConversations: () => API.get("/chat/conversations"),
+    getUnreadCount: () => API.get("/chat/unread"),
+    getMessages: (conversationId, params) => API.get(`/chat/${conversationId}/messages`, { params }),
+    sendMessage: (conversationId, data) => API.post(`/chat/${conversationId}/messages`, data),
 };
 
 export const transactionAPI = {

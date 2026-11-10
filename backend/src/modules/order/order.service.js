@@ -390,3 +390,66 @@ export const cancelUserOrder = async (orderId, userId) => {
 
     return order;
 };
+
+export const getOrderById = async (orderId, actor) => {
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        throw new AppError("Invalid order ID", 400, "INVALID_ID");
+    }
+
+    const order = await Order.findById(orderId)
+        .populate("user", "name email phone address city")
+        .populate("items.product", "name nameHi price image category")
+        .lean();
+
+    if (!order) {
+        throw new AppError("Order not found", 404, "ORDER_NOT_FOUND");
+    }
+
+    const isCustomer = order.user?._id?.toString() === actor._id.toString();
+    const isOwner =
+        actor.role === "owner" &&
+        (order.owners?.some((id) => id.toString() === actor._id.toString()) ||
+            order.items?.some((item) => item.owner?.toString() === actor._id.toString()));
+
+    if (actor.role !== "admin" && !isCustomer && !isOwner) {
+        throw new AppError("Access denied", 403, "FORBIDDEN");
+    }
+
+    return order;
+};
+
+export const reorderToCart = async (orderId, userId) => {
+    const order = await Order.findById(orderId).lean();
+    if (!order) {
+        throw new AppError("Order not found", 404, "ORDER_NOT_FOUND");
+    }
+    if (order.user?.toString() !== userId.toString()) {
+        throw new AppError("Not authorized", 403, "FORBIDDEN");
+    }
+
+    let cart = await Cart.findOne({ user: userId });
+    if (!cart) {
+        cart = await Cart.create({ user: userId, items: [] });
+    }
+
+    for (const item of order.items || []) {
+        const prod = await Product.findById(item.product).select("_id stock isActive").lean();
+        if (!prod || prod.isActive === false || prod.stock <= 0) continue;
+        const size = item.size || "2.6";
+        const existing = cart.items.find(
+            (ci) => ci.product.toString() === prod._id.toString() && (ci.size || "2.6") === size
+        );
+        if (existing) {
+            existing.quantity = Math.min(prod.stock, existing.quantity + (item.quantity || 1));
+        } else {
+            cart.items.push({
+                product: prod._id,
+                size,
+                quantity: Math.min(prod.stock, item.quantity || 1),
+            });
+        }
+    }
+
+    await cart.save();
+    return cart;
+};

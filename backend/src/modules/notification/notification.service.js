@@ -31,3 +31,8 @@ export const markAllAsRead = async (userId) => {
     await Notification.updateMany({ receiver: userId, isread: false }, { $set: { isread: true } });
     return { success: true };
 };
+
+export const deleteNotification = async (userId, notificationId) => {
+    await Notification.findOneAndDelete({ _id: notificationId, receiver: userId });
+    return { success: true };
+};

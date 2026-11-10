@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { LangProvider } from "./context/LangContext";
+import { WishlistProvider } from "./context/WishlistContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -21,6 +22,13 @@ const Checkout = lazy(() => import("./pages/Checkout"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const MyOrders = lazy(() => import("./pages/MyOrders"));
+const OrderDetail = lazy(() => import("./pages/OrderDetail"));
+const Wishlist = lazy(() => import("./pages/Wishlist"));
+const AddressBook = lazy(() => import("./pages/AddressBook"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const Chat = lazy(() => import("./pages/Chat"));
+const CreditHistory = lazy(() => import("./pages/CreditHistory"));
+const TransactionHistory = lazy(() => import("./pages/TransactionHistory"));
 const OwnerDashboard = lazy(() => import("./pages/OwnerDashboard"));
 const MyShop = lazy(() => import("./pages/MyShop"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -33,6 +41,7 @@ export default function App() {
                 <LangProvider>
                     <AuthProvider>
                         <CartProvider>
+                            <WishlistProvider>
                             <div className="min-h-screen flex flex-col bg-ivory text-ink">
                                 <Navbar />
                                 <main className="flex-1">
@@ -65,6 +74,70 @@ export default function App() {
                                                 element={
                                                     <ProtectedRoute>
                                                         <MyOrders />
+                                                    </ProtectedRoute>
+                                                }
+                                            />
+                                            <Route
+                                                path="/orders/:id"
+                                                element={
+                                                    <ProtectedRoute>
+                                                        <OrderDetail />
+                                                    </ProtectedRoute>
+                                                }
+                                            />
+                                            <Route
+                                                path="/wishlist"
+                                                element={
+                                                    <ProtectedRoute>
+                                                        <Wishlist />
+                                                    </ProtectedRoute>
+                                                }
+                                            />
+                                            <Route
+                                                path="/addresses"
+                                                element={
+                                                    <ProtectedRoute>
+                                                        <AddressBook />
+                                                    </ProtectedRoute>
+                                                }
+                                            />
+                                            <Route
+                                                path="/notifications"
+                                                element={
+                                                    <ProtectedRoute>
+                                                        <Notifications />
+                                                    </ProtectedRoute>
+                                                }
+                                            />
+                                            <Route
+                                                path="/chat"
+                                                element={
+                                                    <ProtectedRoute>
+                                                        <Chat />
+                                                    </ProtectedRoute>
+                                                }
+                                            />
+                                            <Route
+                                                path="/chat/:conversationId"
+                                                element={
+                                                    <ProtectedRoute>
+                                                        <Chat />
+                                                    </ProtectedRoute>
+                                                }
+                                            />
+                                            <Route
+                                                path="/credit-history"
+                                                element={
+                                                    <ProtectedRoute>
+                                                        <CreditHistory />
+                                                    </ProtectedRoute>
+                                                }
+                                            />
+                                            <Route
+                                                path="/transactions"
+                                                element={
+                                                    <ProtectedRoute>
+                                                        <TransactionHistory />
                                                     </ProtectedRoute>
                                                 }
                                             />
@@ -119,6 +192,7 @@ export default function App() {
                                     },
                                 }}
                             />
+                            </WishlistProvider>
                         </CartProvider>
                     </AuthProvider>
                 </LangProvider>

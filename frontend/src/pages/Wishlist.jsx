@@ -1,27 +1,32 @@
 import { Link } from "react-router-dom";
-import { FiHeart, FiShoppingBag, FiTrash2 } from "react-icons/fi";
+import { Heart, ShoppingBag, Trash2 } from "lucide-react";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
+import { useLang } from "../context/LangContext";
+import { resolveAssetUrl } from "../services/api";
 import { LoadingSpinner, EmptyState, PriceTag } from "../components/UI";
 
 export default function Wishlist() {
-    const { wishlist, toggleWishlist, fetchWishlist } = useWishlist();
+    const { wishlist, loading, toggleWishlist } = useWishlist();
     const { addToCart } = useCart();
-    const products = wishlist?.products || [];
-    const loading = !wishlist && products.length === 0;
+    const { openQuickOrder, isHindi } = useLang();
 
     if (loading) return <LoadingSpinner />;
 
-    if (products.length === 0) {
+    if (wishlist.length === 0) {
         return (
-            <div className="max-w-4xl mx-auto px-4 py-20">
+            <div className="max-w-4xl mx-auto px-4 py-16">
                 <EmptyState
-                    icon="💝"
-                    title="Your wishlist is empty"
-                    description="Save items you love to your wishlist and come back to them anytime."
+                    icon={Heart}
+                    title={isHindi ? "पसंदीदा सूची खाली है" : "Your wishlist is empty"}
+                    description={
+                        isHindi
+                            ? "दिल आइकन दबाकर अपनी पसंद की चूड़ियाँ यहाँ सेव करें।"
+                            : "Tap the heart icon on any bangle to save it here for later."
+                    }
                     action={
-                        <Link to="/products" className="btn-primary flex items-center gap-2">
-                            <FiShoppingBag /> Browse Products
+                        <Link to="/products" className="btn-primary">
+                            <ShoppingBag size={17} /> {isHindi ? "चूड़ियाँ देखें" : "Explore Bangles"}
                         </Link>
                     }
                 />
@@ -30,63 +35,55 @@ export default function Wishlist() {
     }
 
     return (
-        <div className="max-w-5xl mx-auto px-4 py-8">
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-3xl font-serif font-bold text-gray-900">
-                        My Wishlist <span className="text-gold-500">({products.length})</span>
-                    </h1>
-                    <p className="text-gray-400 mt-1">Items you've saved for later</p>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
-                {products.map((product) => {
-                    const p = typeof product === "string" ? null : product;
-                    if (!p) return null;
-                    return (
-                        <div key={p._id} className="card group">
-                            <Link to={`/products/${p._id}`} className="block relative overflow-hidden">
-                                <div className="aspect-square bg-gradient-to-br from-gold-50 to-gold-100">
-                                    {p.image ? (
-                                        <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center"><span className="text-6xl opacity-20">💎</span></div>
-                                    )}
-                                </div>
-                                {p.category && (
-                                    <span className="absolute top-3 left-3 badge bg-white/90 backdrop-blur-sm text-gold-700 shadow-sm">{p.category}</span>
-                                )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <h1 className="text-3xl font-serif font-bold text-ink mb-6">
+                {isHindi ? "मेरी पसंदीदा चूड़ियाँ" : "Saved Wishlist"} ({wishlist.length})
+            </h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {wishlist.map((p) => (
+                    <div key={p._id} className="card flex flex-col justify-between">
+                        <div>
+                            <Link to={`/products/${p._id}`} className="block aspect-square bg-linen overflow-hidden">
+                                <img
+                                    src={resolveAssetUrl(p.image) || "/images/products/gold-kada.svg"}
+                                    alt={p.name}
+                                    className="w-full h-full object-cover"
+                                />
                             </Link>
-                            <div className="p-5">
-                                <Link to={`/products/${p._id}`}>
-                                    <h3 className="font-serif font-semibold text-gray-800 group-hover:text-gold-600 transition-colors truncate text-lg">{p.name}</h3>
+                            <div className="p-4">
+                                <Link to={`/products/${p._id}`} className="font-serif font-bold text-lg text-ink hover:text-sindoor-700 block truncate">
+                                    {isHindi && p.nameHi ? p.nameHi : p.name}
                                 </Link>
-                                <div className="flex items-center justify-between mt-3">
-                                    <PriceTag amount={p.price} className="text-xl" />
-                                    {p.averageRating > 0 && (
-                                        <span className="text-sm text-gray-500">⭐ {p.averageRating?.toFixed(1)}</span>
-                                    )}
-                                </div>
-                                <div className="flex gap-2 mt-4">
-                                    <button
-                                        onClick={() => addToCart(p._id)}
-                                        className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-semibold py-2.5 rounded-xl hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-md"
-                                    >
-                                        <FiShoppingBag size={16} /> Add to Cart
-                                    </button>
-                                    <button
-                                        onClick={() => toggleWishlist(p._id)}
-                                        className="p-2.5 rounded-xl border-2 border-red-200 text-red-400 hover:bg-red-50 hover:text-red-500 hover:border-red-300 transition-all"
-                                        title="Remove from wishlist"
-                                    >
-                                        <FiTrash2 size={18} />
-                                    </button>
-                                </div>
+                                <PriceTag amount={p.price} compareAtPrice={p.compareAtPrice} className="mt-1" />
                             </div>
                         </div>
-                    );
-                })}
+                        <div className="px-4 pb-4 flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => openQuickOrder(p)}
+                                className="btn-primary flex-1 !py-2 text-xs"
+                            >
+                                {isHindi ? "अभी खरीदें" : "Order Now"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => addToCart(p._id, 1)}
+                                className="btn-secondary !py-2 !px-3"
+                                title="Add to bag"
+                            >
+                                <ShoppingBag size={15} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => toggleWishlist(p._id)}
+                                className="btn-secondary !py-2 !px-3 text-red-600"
+                                title="Remove"
+                            >
+                                <Trash2 size={15} />
+                            </button>
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );

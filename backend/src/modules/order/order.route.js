@@ -7,6 +7,8 @@ import {
     getMyOrders,
     getOwnerOrders,
     getAllOrders,
+    getOrder,
+    reorder,
     updateOrderStatus,
     cancelOrder,
 } from "./order.controller.js";
@@ -66,7 +68,10 @@ router.post("/", isAuth, validate(createOrderSchema), createOrder);
 router.get("/my", isAuth, getMyOrders);
 router.get("/owner", isAuth, authorizeRoles("owner", "admin"), getOwnerOrders);
 router.get("/", isAuth, authorizeRoles("admin"), getAllOrders);
+router.get("/:id", isAuth, getOrder);
+router.post("/:id/reorder", isAuth, reorder);
 router.patch("/:id/status", isAuth, authorizeRoles("owner", "admin"), validate(updateStatusSchema), updateOrderStatus);
+router.put("/:id/status", isAuth, authorizeRoles("owner", "admin"), validate(updateStatusSchema), updateOrderStatus);
 router.patch("/:id/cancel", isAuth, cancelOrder);
 
 export default router;

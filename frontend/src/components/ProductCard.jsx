@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
-import { ShoppingBag, Star, Zap } from "lucide-react";
+import { ShoppingBag, Star, Zap, Heart } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
+import { useWishlist } from "../context/WishlistContext";
 import { PriceTag } from "./UI";
 import { resolveAssetUrl } from "../services/api";
 
@@ -10,6 +11,8 @@ export default function ProductCard({ product }) {
     const { addToCart } = useCart();
     const { user } = useAuth();
     const { openQuickOrder, t, isHindi } = useLang();
+    const { isWishlisted, toggleWishlist } = useWishlist();
+    const liked = isWishlisted(product._id);
 
     const title = isHindi && product.nameHi ? product.nameHi : product.name;
     const imgSrc = resolveAssetUrl(product.image || product.images?.[0]) || "/images/products/gold-kada.svg";
@@ -17,7 +20,7 @@ export default function ProductCard({ product }) {
 
     return (
         <article className="card group flex flex-col justify-between hover:shadow-elevated transition-all duration-300">
-            <div>
+            <div className="relative">
                 <Link to={`/products/${product._id}`} className="block relative overflow-hidden bg-linen">
                     <div className="aspect-square">
                         <img
@@ -46,6 +49,20 @@ export default function ProductCard({ product }) {
                         </span>
                     )}
                 </Link>
+                {user && (
+                    <button
+                        type="button"
+                        onClick={() => toggleWishlist(product._id)}
+                        aria-label="Save to wishlist"
+                        className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center border transition-colors ${
+                            liked
+                                ? "bg-sindoor-600 text-white border-sindoor-600"
+                                : "bg-white/95 text-ink border-parchment hover:text-sindoor-600"
+                        }`}
+                    >
+                        <Heart size={15} className={liked ? "fill-white" : ""} />
+                    </button>
+                )}
 
                 <div className="p-4">
                     <div className="flex items-start justify-between gap-2">
