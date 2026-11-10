@@ -14,9 +14,10 @@ build/
 *.log
 npm-debug.log*
 
-# Runtime uploads
+# Runtime uploads & local dev db
 backend/uploads/
 uploads/
+.mongodb-data/
 
 # OS files
 .DS_Store

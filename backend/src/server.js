@@ -58,12 +58,34 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {});
 });
 
-const startServer = async () => {
+const connectWithFallback = async () => {
     try {
         await mongoose.connect(MONGO_URI, {
             serverSelectionTimeoutMS: 8000,
         });
         console.log("MongoDB connected");
+    } catch (err) {
+        const isDev = process.env.NODE_ENV !== "production";
+        const isAtlasDnsFail = /querySrv|ENOTFOUND|EAI_AGAIN/i.test(err.message);
+        const localFallback = "mongodb://127.0.0.1:27017/bangelsverse";
+
+        if (isDev && isAtlasDnsFail && MONGO_URI !== localFallback) {
+            console.warn(
+                `Atlas MongoDB unreachable (${err.message}). Falling back to local MongoDB: ${localFallback}`
+            );
+            await mongoose.connect(localFallback, {
+                serverSelectionTimeoutMS: 5000,
+            });
+            console.log("Local MongoDB connected");
+            return;
+        }
+        throw err;
+    }
+};
+
+const startServer = async () => {
+    try {
+        await connectWithFallback();
 
         if (process.env.AUTO_SEED !== "false") {
             await seedInitialCatalogIfEmpty();
@@ -74,6 +96,9 @@ const startServer = async () => {
         });
     } catch (err) {
         console.error("Failed to start server:", err.message);
+        console.error(
+            "Tip: Update MONGO_URI in backend/.env or start local MongoDB on 127.0.0.1:27017."
+        );
         process.exit(1);
     }
 };
