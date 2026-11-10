@@ -1,0 +1,45 @@
+services:
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "${PORT:-5002}:5002"
+    environment:
+      NODE_ENV: production
+      PORT: 5002
+      MONGO_URI: mongodb://mongo:27017/bangelsverse
+      JWT_SECRET: ${JWT_SECRET:-change_this_to_a_secure_64_char_secret_in_prod}
+      SERVE_FRONTEND: "true"
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+      SUPPORT_PHONE: ${SUPPORT_PHONE:-9876543210}
+      SUPPORT_WHATSAPP: ${SUPPORT_WHATSAPP:-919876543210}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+    volumes:
+      - uploads_data:/app/backend/uploads
+
+volumes:
+  mongo_data:
+  uploads_data:
+

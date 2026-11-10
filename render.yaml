@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: bangels-verse
+    runtime: node
+    plan: free
+    buildCommand: npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend
+    startCommand: npm start --prefix backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SERVE_FRONTEND
+        value: "true"
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SUPPORT_PHONE
+        value: "9876543210"
+      - key: SUPPORT_WHATSAPP
+        value: "919876543210"
+

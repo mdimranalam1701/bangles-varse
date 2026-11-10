@@ -14,6 +14,10 @@ build/
 *.log
 npm-debug.log*
 
+# Runtime uploads
+backend/uploads/
+uploads/
+
 # OS files
 .DS_Store
 Thumbs.db

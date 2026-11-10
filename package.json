@@ -1,0 +1,16 @@
+{
+  "name": "bangels-verse",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Bangels Verse — Handcrafted Bangles Marketplace (Full-Stack Production)",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix backend start",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "seed": "npm --prefix backend run seed",
+    "test": "npm --prefix backend test"
+  }
+}
+
