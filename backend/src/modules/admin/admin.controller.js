@@ -53,3 +53,39 @@ export const deleteUser = async (req, res) => {
         res.status(400).json({ success: false, message: err.message });
     }
 };
+
+export const getOwnerDetail = async (req, res) => {
+    try {
+        const data = await adminService.getOwnerDetail(req.params.id);
+        res.json({ success: true, data });
+    } catch (err) {
+        res.status(404).json({ success: false, message: err.message });
+    }
+};
+
+export const getCustomerDetail = async (req, res) => {
+    try {
+        const data = await adminService.getCustomerDetail(req.params.id);
+        res.json({ success: true, data });
+    } catch (err) {
+        res.status(404).json({ success: false, message: err.message });
+    }
+};
+
+export const getOwnersSummary = async (req, res) => {
+    try {
+        const data = await adminService.getOwnersSummary();
+        res.json({ success: true, data });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+export const getCustomersSummary = async (req, res) => {
+    try {
+        const data = await adminService.getCustomersSummary();
+        res.json({ success: true, data });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
