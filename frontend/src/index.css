@@ -3,80 +3,67 @@
 @tailwind utilities;
 
 @layer base {
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+    html {
+        scroll-behavior: smooth;
+        -webkit-tap-highlight-color: transparent;
     }
 
     body {
-        font-family: "Inter", sans-serif;
-        background-color: #fffbf7;
-        color: #1a1a1a;
+        font-family: "Plus Jakarta Sans", "Noto Sans Devanagari", system-ui, sans-serif;
+        background-color: #FAF7F2;
+        color: #1C1613;
+        -webkit-font-smoothing: antialiased;
     }
 
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        font-family: "Playfair Display", serif;
+    h1, h2, h3, h4, h5, h6 {
+        font-family: "Cormorant Garamond", "Noto Sans Devanagari", Georgia, serif;
+        letter-spacing: -0.01em;
     }
 }
 
 @layer components {
     .btn-primary {
-        @apply bg-gradient-to-r from-gold-500 to-gold-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+        @apply inline-flex items-center justify-center gap-2 bg-sindoor-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-sindoor-700 transition-colors duration-200 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px];
     }
 
     .btn-secondary {
-        @apply border-2 border-gold-500 text-gold-700 font-semibold py-3 px-6 rounded-xl hover:bg-gold-50 transition-all duration-300 active:scale-95;
+        @apply inline-flex items-center justify-center gap-2 border border-ink/20 bg-white text-ink font-semibold py-3 px-6 rounded-lg hover:border-sindoor-600 hover:text-sindoor-700 transition-colors duration-200 active:scale-[0.99] min-h-[44px];
+    }
+
+    .btn-brass {
+        @apply inline-flex items-center justify-center gap-2 bg-brass-50 text-brass-700 border border-brass-200 font-semibold py-2.5 px-5 rounded-lg hover:bg-brass-100 transition-colors duration-200 min-h-[44px];
+    }
+
+    .btn-whatsapp {
+        @apply inline-flex items-center justify-center gap-2 bg-[#1B7A43] text-white font-semibold py-3 px-5 rounded-lg hover:bg-[#156336] transition-colors duration-200 min-h-[44px];
     }
 
     .btn-danger {
-        @apply bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition-all duration-200 active:scale-95;
+        @apply inline-flex items-center justify-center gap-2 bg-red-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200 min-h-[40px];
     }
 
     .input-field {
-        @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:border-gold-400 focus:ring-2 focus:ring-gold-100 focus:outline-none transition-all duration-200 text-gray-700 placeholder-gray-400;
+        @apply w-full px-4 py-3 border border-parchment rounded-lg bg-white focus:border-sindoor-600 focus:ring-2 focus:ring-sindoor-100 focus:outline-none transition-colors duration-150 text-ink placeholder-umber/50 min-h-[46px] text-base;
     }
 
     .card {
-        @apply bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden;
+        @apply bg-white rounded-xl border border-parchment/80 shadow-atelier overflow-hidden transition-shadow duration-200;
     }
 
     .badge {
-        @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
-    }
-
-    .glass {
-        @apply bg-white/80 backdrop-blur-md border border-white/20;
-    }
-
-    .shimmer {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
+        @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide;
     }
 }
 
-@keyframes shimmer {
-    0% {
-        background-position: 200% 0;
-    }
-
-    100% {
-        background-position: -200% 0;
-    }
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
 }
 
-@keyframes fadeIn {
+@keyframes fadeSlideUp {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(8px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -84,23 +71,23 @@
 }
 
 .animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
+    animation: fadeSlideUp 0.35s ease-out forwards;
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
-    width: 6px;
+    width: 7px;
+    height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #f9f5f0;
+    background: #F3ECE1;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #d4a574;
-    border-radius: 3px;
+    background: #C9B9A3;
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #b8860b;
+    background: #9A6E1F;
 }

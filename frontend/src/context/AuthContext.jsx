@@ -1,14 +1,23 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 import toast from "react-hot-toast";
-import { authAPI } from "../services/api";
+import { authAPI, API_ORIGIN } from "../services/api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+        try {
+            const stored = localStorage.getItem("user");
+            return stored ? JSON.parse(stored) : null;
+        } catch {
+            return null;
+        }
+    });
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const socketRef = useRef(null);
 
     const fetchProfile = useCallback(async () => {
         try {
@@ -24,29 +33,62 @@ export function AuthProvider({ children }) {
 
     useEffect(() => {
         const token = localStorage.getItem("token");
-        const stored = localStorage.getItem("user");
-        if (stored) {
-            try {
-                setUser(JSON.parse(stored));
-            } catch {
-                localStorage.removeItem("user");
-            }
-        }
-        // If token exists, fetch fresh profile (includes profilePicture)
         if (token) {
-            fetchProfile();
+            fetchProfile().finally(() => setLoading(false));
+        } else {
+            setLoading(false);
         }
-        setLoading(false);
     }, [fetchProfile]);
 
-    const login = async (email, password) => {
+    // Real-time Socket.IO connection for live shop/customer alerts
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!user || !token) {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+                socketRef.current = null;
+            }
+            return;
+        }
+
+        const socket = io(API_ORIGIN || window.location.origin, {
+            auth: { token },
+            transports: ["websocket", "polling"],
+        });
+
+        socket.on("newOrder", (payload) => {
+            toast.success(
+                `New Order ${payload?.orderCode || ""} — Rs.${Number(payload?.amount || 0).toLocaleString("en-IN")}`,
+                { duration: 5000 }
+            );
+        });
+
+        socket.on("orderUpdated", (payload) => {
+            toast.success(
+                `Order ${payload?.orderCode || ""} is now ${payload?.status || "updated"}`,
+                { duration: 4500 }
+            );
+        });
+
+        socket.on("accountApproved", () => {
+            toast.success("Your shop account has been approved!");
+            fetchProfile();
+        });
+
+        socketRef.current = socket;
+        return () => {
+            socket.disconnect();
+            socketRef.current = null;
+        };
+    }, [user?._id, fetchProfile]);
+
+    const login = async (identifier, password) => {
         try {
-            const { data } = await authAPI.login({ email, password });
+            const { data } = await authAPI.login({ identifier, password });
             const { user: u, token } = data.data;
             localStorage.setItem("token", token);
             localStorage.setItem("user", JSON.stringify(u));
             setUser(u);
-            // Fetch full profile to get profilePicture
             fetchProfile();
             toast.success(`Welcome back, ${u.name}!`);
             if (u.role === "owner") navigate("/owner/dashboard");
@@ -54,16 +96,27 @@ export function AuthProvider({ children }) {
             else navigate("/");
             return true;
         } catch (err) {
-            toast.error(err.response?.data?.message || "Login failed");
+            toast.error(err.response?.data?.message || "Invalid mobile/email or password");
             return false;
         }
     };
 
-    const register = async (name, email, password, role) => {
+    const register = async (payload) => {
         try {
-            await authAPI.register({ name, email, password, role });
-            toast.success("Account created! Please login.");
-            navigate("/login");
+            const { data } = await authAPI.register(payload);
+            const u = data.user || data.data;
+            const token = data.token;
+            if (token && u) {
+                localStorage.setItem("token", token);
+                localStorage.setItem("user", JSON.stringify(u));
+                setUser(u);
+                toast.success(`Welcome to Bangels Verse, ${u.name}!`);
+                if (u.role === "owner") navigate("/owner/dashboard");
+                else navigate("/");
+            } else {
+                toast.success("Account created! Please sign in.");
+                navigate("/login");
+            }
             return true;
         } catch (err) {
             toast.error(err.response?.data?.message || "Registration failed");
@@ -75,7 +128,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         setUser(null);
-        toast.success("Logged out successfully");
+        toast.success("Signed out");
         navigate("/login");
     };
 

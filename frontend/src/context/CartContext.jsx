@@ -20,7 +20,8 @@ export function CartProvider({ children }) {
             const { data } = await cartAPI.get();
             const c = data.data;
             setCart(c);
-            setItemCount(c?.items?.length || 0);
+            const totalQty = (c?.items || []).reduce((acc, item) => acc + (item.quantity || 1), 0);
+            setItemCount(totalQty);
         } catch {
             setCart(null);
             setItemCount(0);
@@ -31,21 +32,42 @@ export function CartProvider({ children }) {
         fetchCart();
     }, [fetchCart]);
 
-    const addToCart = async (productId, quantity = 1) => {
+    const addToCart = async (productId, quantity = 1, size = "2.6") => {
+        if (!user) {
+            toast.error("Please sign in to use your bag, or use 1-Tap Order Now!");
+            return false;
+        }
         try {
-            await cartAPI.add({ productId, quantity });
-            await fetchCart();
-            toast.success("Added to cart!");
+            const { data } = await cartAPI.add({ productId, quantity, size });
+            const c = data.data;
+            setCart(c);
+            setItemCount((c?.items || []).reduce((acc, i) => acc + (i.quantity || 1), 0));
+            toast.success("Added to bag!");
+            return true;
         } catch (err) {
-            toast.error(err.response?.data?.message || "Failed to add");
+            toast.error(err.response?.data?.message || "Failed to add to bag");
+            return false;
         }
     };
 
-    const removeFromCart = async (productId) => {
+    const updateQuantity = async (productId, quantity, size) => {
         try {
-            await cartAPI.remove(productId);
-            await fetchCart();
-            toast.success("Removed from cart");
+            const { data } = await cartAPI.update({ productId, quantity, size });
+            const c = data.data;
+            setCart(c);
+            setItemCount((c?.items || []).reduce((acc, i) => acc + (i.quantity || 1), 0));
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Could not update quantity");
+        }
+    };
+
+    const removeFromCart = async (productId, size) => {
+        try {
+            const { data } = await cartAPI.remove(productId, size);
+            const c = data.data;
+            setCart(c);
+            setItemCount((c?.items || []).reduce((acc, i) => acc + (i.quantity || 1), 0));
+            toast.success("Removed from bag");
         } catch (err) {
             toast.error(err.response?.data?.message || "Failed to remove");
         }
@@ -53,7 +75,7 @@ export function CartProvider({ children }) {
 
     return (
         <CartContext.Provider
-            value={{ cart, itemCount, addToCart, removeFromCart, fetchCart }}
+            value={{ cart, itemCount, addToCart, updateQuantity, removeFromCart, fetchCart }}
         >
             {children}
         </CartContext.Provider>

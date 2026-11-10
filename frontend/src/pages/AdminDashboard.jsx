@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-    FiUsers, FiUserCheck, FiUserX, FiShoppingCart, FiDollarSign,
-    FiPackage, FiTrash2, FiCheck, FiX
-} from "react-icons/fi";
+import { Users, UserCheck, UserX, ShoppingBag, DollarSign, Package, Trash2, Check, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { adminAPI, orderAPI, transactionAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -17,10 +14,6 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState("overview");
     const [userFilter, setUserFilter] = useState("all");
-
-    useEffect(() => {
-        fetchData();
-    }, []);
 
     const fetchData = async () => {
         try {
@@ -40,81 +33,103 @@ export default function AdminDashboard() {
         setLoading(false);
     };
 
+    useEffect(() => {
+        fetchData();
+    }, []);
+
     const handleApprove = async (id) => {
-        try { await adminAPI.approveOwner(id); toast.success("Owner approved!"); fetchData(); }
-        catch (err) { toast.error(err.response?.data?.message || "Failed"); }
+        try {
+            await adminAPI.approveOwner(id);
+            toast.success("Shop approved!");
+            fetchData();
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed");
+        }
     };
 
     const handleReject = async (id) => {
-        try { await adminAPI.rejectOwner(id); toast.success("Owner rejected"); fetchData(); }
-        catch (err) { toast.error(err.response?.data?.message || "Failed"); }
+        try {
+            await adminAPI.rejectOwner(id);
+            toast.success("Shop approval revoked");
+            fetchData();
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed");
+        }
     };
 
     const handleDeleteUser = async (id) => {
-        if (!confirm("Delete this user?")) return;
-        try { await adminAPI.deleteUser(id); toast.success("User deleted"); fetchData(); }
-        catch (err) { toast.error(err.response?.data?.message || "Failed"); }
+        if (!confirm("Delete this account?")) return;
+        try {
+            await adminAPI.deleteUser(id);
+            toast.success("User deleted");
+            fetchData();
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed");
+        }
     };
 
     if (loading) return <LoadingSpinner />;
 
-    const customers = users.filter(u => u.role === "user");
-    const owners = users.filter(u => u.role === "owner");
-    const pendingOwners = owners.filter(o => !o.isApproved);
-
-    const filteredUsers = userFilter === "all" ? users
-        : userFilter === "customers" ? customers
-            : userFilter === "owners" ? owners
-                : userFilter === "pending" ? pendingOwners : users;
+    const owners = users.filter((u) => u.role === "owner");
+    const pendingOwners = owners.filter((o) => !o.isApproved);
+    const filteredUsers =
+        userFilter === "all"
+            ? users
+            : userFilter === "customers"
+                ? users.filter((u) => u.role === "user")
+                : userFilter === "owners"
+                    ? owners
+                    : pendingOwners;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-serif font-bold text-gray-900">Admin Dashboard</h1>
-                <p className="text-gray-400">Welcome, {user?.name} — Full site control</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+            <div>
+                <h1 className="text-3xl font-serif font-bold text-ink">Platform Admin</h1>
+                <p className="text-sm text-umber">Signed in as {user?.name}</p>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 {[
-                    { icon: <FiUsers />, label: "Customers", value: stats?.totalUsers || 0 },
-                    { icon: <FiUserCheck />, label: "Approved Owners", value: stats?.approvedOwners || 0 },
-                    { icon: <FiUserX />, label: "Pending Owners", value: stats?.pendingOwners || 0 },
-                    { icon: <FiPackage />, label: "Products", value: stats?.totalProducts || 0 },
-                    { icon: <FiShoppingCart />, label: "Orders", value: stats?.totalOrders || 0 },
-                    { icon: <FiDollarSign />, label: "Transactions", value: stats?.totalTransactions || 0 },
-                ].map((s, i) => (
-                    <div key={i} className="card p-5">
-                        <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-gold-100 text-gold-600">{s.icon}</div>
+                    { icon: DollarSign, label: "Platform GMV", value: `₹${(stats?.totalRevenue || 0).toLocaleString("en-IN")}` },
+                    { icon: Users, label: "Customers", value: stats?.totalUsers || 0 },
+                    { icon: UserCheck, label: "Approved Shops", value: stats?.approvedOwners || 0 },
+                    { icon: UserX, label: "Pending Approvals", value: stats?.pendingOwners || 0 },
+                    { icon: Package, label: "Products", value: stats?.totalProducts || 0 },
+                    { icon: ShoppingBag, label: "Orders", value: stats?.totalOrders || 0 },
+                ].map((s, i) => {
+                    const Icon = s.icon;
+                    return (
+                        <div key={i} className="card p-4 flex items-center gap-3.5">
+                            <div className="w-11 h-11 rounded-xl bg-linen text-sindoor-700 flex items-center justify-center shrink-0">
+                                <Icon size={20} />
+                            </div>
                             <div>
-                                <p className="text-sm text-gray-400">{s.label}</p>
-                                <p className="text-xl font-bold text-gray-800">{s.value}</p>
+                                <p className="text-xs font-semibold text-umber">{s.label}</p>
+                                <p className="text-xl font-bold text-ink tabular-nums">{s.value}</p>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
-            {/* Pending Approvals */}
             {pendingOwners.length > 0 && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5 mb-8">
-                    <h3 className="font-semibold text-yellow-800 flex items-center gap-2 mb-3">
-                        ⚠️ {pendingOwners.length} Owner{pendingOwners.length > 1 ? "s" : ""} Pending Approval
-                    </h3>
-                    <div className="space-y-3">
-                        {pendingOwners.map(o => (
-                            <div key={o._id} className="flex items-center justify-between bg-white rounded-xl p-3">
+                <div className="bg-brass-50 border border-brass-200 rounded-xl p-5 space-y-3">
+                    <h2 className="font-serif font-bold text-lg text-ink">
+                        Shops Awaiting Approval ({pendingOwners.length})
+                    </h2>
+                    <div className="space-y-2">
+                        {pendingOwners.map((o) => (
+                            <div key={o._id} className="bg-white rounded-lg p-3 flex flex-wrap items-center justify-between gap-3 border border-parchment">
                                 <div>
-                                    <p className="font-medium text-gray-800">{o.name}</p>
-                                    <p className="text-sm text-gray-400">{o.email}{o.companyName ? ` • ${o.companyName}` : ""}</p>
+                                    <p className="font-semibold text-ink text-sm">{o.companyName || o.name}</p>
+                                    <p className="text-xs text-umber">{o.name} • {o.phone || o.email}</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => handleApprove(o._id)} className="flex items-center gap-1 bg-green-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-green-600">
-                                        <FiCheck size={14} /> Approve
+                                    <button type="button" onClick={() => handleApprove(o._id)} className="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1">
+                                        <Check size={14} /> Approve
                                     </button>
-                                    <button onClick={() => handleReject(o._id)} className="flex items-center gap-1 bg-red-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-600">
-                                        <FiX size={14} /> Reject
+                                    <button type="button" onClick={() => handleReject(o._id)} className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1">
+                                        <X size={14} /> Reject
                                     </button>
                                 </div>
                             </div>
@@ -123,167 +138,173 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            {/* Tabs */}
-            <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
-                {["overview", "users", "orders", "transactions"].map(t => (
-                    <button key={t} onClick={() => setTab(t)}
-                        className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${tab === t ? "bg-white text-gold-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
-                        {t.charAt(0).toUpperCase() + t.slice(1)}
+            <div className="flex flex-wrap gap-1 bg-linen p-1 rounded-xl border border-parchment w-fit">
+                {["overview", "users", "orders", "transactions"].map((t) => (
+                    <button
+                        key={t}
+                        type="button"
+                        onClick={() => setTab(t)}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold capitalize ${
+                            tab === t ? "bg-white text-sindoor-700 shadow-xs" : "text-umber hover:text-ink"
+                        }`}
+                    >
+                        {t}
                     </button>
                 ))}
             </div>
 
-            {/* Overview */}
             {tab === "overview" && stats && (
                 <div className="grid lg:grid-cols-2 gap-6">
-                    <div className="card p-5">
-                        <h3 className="font-serif font-semibold mb-4">Recent Users</h3>
-                        <div className="space-y-3">
-                            {(stats.recentUsers || []).slice(0, 5).map(u => (
-                                <div key={u._id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-gold-100 rounded-full flex items-center justify-center text-gold-600 text-sm font-bold">{u.name?.[0]?.toUpperCase()}</div>
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-700">{u.name}</p>
-                                            <p className="text-xs text-gray-400">{u.email}</p>
-                                        </div>
-                                    </div>
-                                    <span className={`badge ${u.role === "owner" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>{u.role}</span>
+                    <div className="card p-5 space-y-3">
+                        <h3 className="font-serif font-bold text-xl text-ink">Recent Accounts</h3>
+                        {(stats.recentUsers || []).slice(0, 6).map((u) => (
+                            <div key={u._id} className="flex items-center justify-between py-2 border-b border-parchment/60 last:border-0 text-sm">
+                                <div>
+                                    <p className="font-semibold text-ink">{u.name}</p>
+                                    <p className="text-xs text-umber">{u.phone || u.email}</p>
                                 </div>
-                            ))}
-                        </div>
+                                <span className="badge bg-linen text-ink capitalize">{u.role}</span>
+                            </div>
+                        ))}
                     </div>
-                    <div className="card p-5">
-                        <h3 className="font-serif font-semibold mb-4">Recent Orders</h3>
-                        <div className="space-y-3">
-                            {(stats.recentOrders || []).slice(0, 5).map(o => (
-                                <div key={o._id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-700">{o.user?.name || "User"}</p>
-                                        <p className="text-xs text-gray-400">#{o._id?.slice(-8)}</p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <StatusBadge status={o.status} />
-                                        <PriceTag amount={o.totalAmount} className="text-sm" />
-                                    </div>
+                    <div className="card p-5 space-y-3">
+                        <h3 className="font-serif font-bold text-xl text-ink">Recent Orders</h3>
+                        {(stats.recentOrders || []).slice(0, 6).map((o) => (
+                            <div key={o._id} className="flex items-center justify-between py-2 border-b border-parchment/60 last:border-0 text-sm">
+                                <div>
+                                    <p className="font-mono font-semibold text-sindoor-700">{o.orderCode || `#${o._id.slice(-6)}`}</p>
+                                    <p className="text-xs text-umber">{o.customerName || o.user?.name}</p>
                                 </div>
-                            ))}
-                        </div>
+                                <div className="flex items-center gap-2">
+                                    <StatusBadge status={o.status} />
+                                    <PriceTag amount={o.totalAmount} />
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}
 
-            {/* Users Tab */}
             {tab === "users" && (
-                <div>
-                    <div className="flex flex-wrap gap-2 mb-6">
-                        {[
-                            { key: "all", label: `All (${users.length})` },
-                            { key: "customers", label: `Customers (${customers.length})` },
-                            { key: "owners", label: `Owners (${owners.length})` },
-                            { key: "pending", label: `Pending (${pendingOwners.length})` },
-                        ].map(f => (
-                            <button key={f.key} onClick={() => setUserFilter(f.key)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${userFilter === f.key ? "bg-gold-500 text-white" : "bg-white text-gray-600 border hover:border-gold-300"}`}>
-                                {f.label}
+                <div className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                        {["all", "customers", "owners", "pending"].map((f) => (
+                            <button
+                                key={f}
+                                type="button"
+                                onClick={() => setUserFilter(f)}
+                                className={`px-4 py-1.5 rounded-full text-xs font-semibold capitalize border ${
+                                    userFilter === f ? "bg-sindoor-600 text-white border-sindoor-600" : "bg-white text-ink border-parchment"
+                                }`}
+                            >
+                                {f}
                             </button>
                         ))}
                     </div>
-                    <div className="card overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead><tr className="bg-gray-50 text-left">
-                                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">User</th>
-                                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Role</th>
-                                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Company</th>
-                                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Joined</th>
-                                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
-                                </tr></thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {filteredUsers.map(u => (
-                                        <tr key={u._id} className="hover:bg-gold-50/50 transition-colors">
-                                            <td className="px-6 py-4"><div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 bg-gold-100 rounded-full flex items-center justify-center text-gold-600 text-sm font-bold">{u.name?.[0]?.toUpperCase()}</div>
-                                                <div><p className="font-medium text-gray-800">{u.name}</p><p className="text-xs text-gray-400">{u.email}</p></div>
-                                            </div></td>
-                                            <td className="px-6 py-4"><span className={`badge ${u.role === "admin" ? "bg-red-100 text-red-700" : u.role === "owner" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>{u.role}</span></td>
-                                            <td className="px-6 py-4">{u.role === "owner" ? <span className={`badge ${u.isApproved ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{u.isApproved ? "Approved" : "Pending"}</span> : <span className="badge bg-green-100 text-green-700">Active</span>}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-500">{u.companyName || "—"}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-400">{new Date(u.createdAt).toLocaleDateString("en-IN")}</td>
-                                            <td className="px-6 py-4"><div className="flex items-center gap-2">
-                                                {u.role === "owner" && !u.isApproved && <button onClick={() => handleApprove(u._id)} className="text-green-500 hover:text-green-700"><FiCheck size={16} /></button>}
-                                                {u.role === "owner" && u.isApproved && <button onClick={() => handleReject(u._id)} className="text-yellow-500 hover:text-yellow-700"><FiX size={16} /></button>}
-                                                {u.role !== "admin" && <button onClick={() => handleDeleteUser(u._id)} className="text-gray-300 hover:text-red-500"><FiTrash2 size={16} /></button>}
-                                            </div></td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+
+                    <div className="card overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-linen text-xs uppercase text-umber">
+                                <tr>
+                                    <th className="px-5 py-3">User</th>
+                                    <th className="px-5 py-3">Role</th>
+                                    <th className="px-5 py-3">Status</th>
+                                    <th className="px-5 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-parchment/70">
+                                {filteredUsers.map((u) => (
+                                    <tr key={u._id} className="hover:bg-ivory">
+                                        <td className="px-5 py-3">
+                                            <p className="font-semibold text-ink">{u.name}</p>
+                                            <p className="text-xs text-umber">{u.phone || u.email} {u.companyName ? `• ${u.companyName}` : ""}</p>
+                                        </td>
+                                        <td className="px-5 py-3 capitalize">{u.role}</td>
+                                        <td className="px-5 py-3">
+                                            {u.role === "owner" ? (
+                                                <span className={`badge ${u.isApproved ? "bg-emerald-50 text-emerald-700" : "bg-brass-50 text-brass-700"}`}>
+                                                    {u.isApproved ? "Approved" : "Pending"}
+                                                </span>
+                                            ) : (
+                                                <span className="badge bg-emerald-50 text-emerald-700">Active</span>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-3 flex items-center gap-2">
+                                            {u.role === "owner" && !u.isApproved && (
+                                                <button type="button" onClick={() => handleApprove(u._id)} className="text-emerald-600 hover:text-emerald-800" title="Approve">
+                                                    <Check size={16} />
+                                                </button>
+                                            )}
+                                            {u.role === "owner" && u.isApproved && (
+                                                <button type="button" onClick={() => handleReject(u._id)} className="text-brass-700 hover:text-ink" title="Revoke">
+                                                    <X size={16} />
+                                                </button>
+                                            )}
+                                            {u.role !== "admin" && (
+                                                <button type="button" onClick={() => handleDeleteUser(u._id)} className="text-umber hover:text-red-600" title="Delete">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             )}
 
-            {/* Orders */}
             {tab === "orders" && (
-                <div className="card overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead><tr className="bg-gray-50 text-left">
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Order ID</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Customer</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Items</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Total</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
-                            </tr></thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {orders.length === 0 ? <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400">No orders yet</td></tr>
-                                    : orders.map(o => (
-                                        <tr key={o._id} className="hover:bg-gold-50/50 transition-colors">
-                                            <td className="px-6 py-4 font-mono text-sm text-gray-500">#{o._id?.slice(-8).toUpperCase()}</td>
-                                            <td className="px-6 py-4 text-sm">{o.user?.name || "—"}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-600">{o.items?.length || 0}</td>
-                                            <td className="px-6 py-4"><PriceTag amount={o.totalAmount} /></td>
-                                            <td className="px-6 py-4"><StatusBadge status={o.status} /></td>
-                                            <td className="px-6 py-4 text-sm text-gray-400">{new Date(o.createdAt).toLocaleDateString("en-IN")}</td>
-                                        </tr>
-                                    ))}
-                            </tbody>
-                        </table>
-                    </div>
+                <div className="card overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-linen text-xs uppercase text-umber">
+                            <tr>
+                                <th className="px-5 py-3">Order</th>
+                                <th className="px-5 py-3">Customer</th>
+                                <th className="px-5 py-3">Amount</th>
+                                <th className="px-5 py-3">Status</th>
+                                <th className="px-5 py-3">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-parchment/70">
+                            {orders.map((o) => (
+                                <tr key={o._id}>
+                                    <td className="px-5 py-3 font-mono font-semibold text-sindoor-700">{o.orderCode || o._id.slice(-6)}</td>
+                                    <td className="px-5 py-3">{o.customerName || o.user?.name || "—"}</td>
+                                    <td className="px-5 py-3"><PriceTag amount={o.totalAmount} /></td>
+                                    <td className="px-5 py-3"><StatusBadge status={o.status} /></td>
+                                    <td className="px-5 py-3 text-umber">{new Date(o.createdAt).toLocaleDateString("en-IN")}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             )}
 
-            {/* Transactions */}
             {tab === "transactions" && (
-                <div className="card overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead><tr className="bg-gray-50 text-left">
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">ID</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">User</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Type</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Amount</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Note</th>
-                                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
-                            </tr></thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {transactions.length === 0 ? <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400">No transactions</td></tr>
-                                    : transactions.map(tx => (
-                                        <tr key={tx._id} className="hover:bg-gold-50/50 transition-colors">
-                                            <td className="px-6 py-4 font-mono text-sm text-gray-500">#{tx._id?.slice(-8).toUpperCase()}</td>
-                                            <td className="px-6 py-4 text-sm">{tx.user?.name || "—"}</td>
-                                            <td className="px-6 py-4"><StatusBadge status={tx.type} /></td>
-                                            <td className="px-6 py-4"><PriceTag amount={tx.amount} /></td>
-                                            <td className="px-6 py-4 text-sm text-gray-500">{tx.note}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-400">{new Date(tx.createdAt).toLocaleDateString("en-IN")}</td>
-                                        </tr>
-                                    ))}
-                            </tbody>
-                        </table>
-                    </div>
+                <div className="card overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-linen text-xs uppercase text-umber">
+                            <tr>
+                                <th className="px-5 py-3">User</th>
+                                <th className="px-5 py-3">Type</th>
+                                <th className="px-5 py-3">Amount</th>
+                                <th className="px-5 py-3">Note</th>
+                                <th className="px-5 py-3">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-parchment/70">
+                            {transactions.map((tx) => (
+                                <tr key={tx._id}>
+                                    <td className="px-5 py-3">{tx.user?.name || "—"}</td>
+                                    <td className="px-5 py-3"><StatusBadge status={tx.type} /></td>
+                                    <td className="px-5 py-3"><PriceTag amount={tx.amount} /></td>
+                                    <td className="px-5 py-3 text-umber">{tx.note}</td>
+                                    <td className="px-5 py-3 text-umber">{new Date(tx.createdAt).toLocaleDateString("en-IN")}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             )}
         </div>

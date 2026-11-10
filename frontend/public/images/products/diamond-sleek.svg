@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EFE9DF"/>
+    </radialGradient>
+    <linearGradient id="platinum" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5F3EE"/>
+      <stop offset="50%" stop-color="#C8C1B6"/>
+      <stop offset="100%" stop-color="#EAE4D9"/>
+    </linearGradient>
+    <linearGradient id="warmgold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F6DE9B"/>
+      <stop offset="100%" stop-color="#B88728"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>
+  <ellipse cx="300" cy="472" rx="170" ry="20" fill="#2A1D16" fill-opacity="0.09"/>
+  <ellipse cx="282" cy="285" rx="126" ry="100" stroke="url(#warmgold)" stroke-width="14" transform="rotate(-12 282 285)"/>
+  <ellipse cx="282" cy="285" rx="126" ry="100" stroke="#FFFFFF" stroke-width="7" stroke-dasharray="2 11" transform="rotate(-12 282 285)"/>
+  <ellipse cx="316" cy="316" rx="126" ry="100" stroke="url(#platinum)" stroke-width="14" transform="rotate(-12 316 316)"/>
+  <ellipse cx="316" cy="316" rx="126" ry="100" stroke="#FFFFFF" stroke-width="8" stroke-dasharray="2 10" transform="rotate(-12 316 316)"/>
+  <!-- Sparkle facets -->
+  <path d="M210 218 L215 204 L220 218 L234 223 L220 228 L215 242 L210 228 L196 223 Z" fill="#FFFFFF"/>
+  <path d="M402 365 L406 355 L410 365 L420 369 L410 373 L406 383 L402 373 L392 369 Z" fill="#FFFFFF"/>
+</svg>
+

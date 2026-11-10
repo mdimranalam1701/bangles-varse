@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#FFFDF9"/>
+      <stop offset="100%" stop-color="#F2E9DC"/>
+    </radialGradient>
+    <linearGradient id="maroon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9A1F2B"/>
+      <stop offset="50%" stop-color="#6B0F1A"/>
+      <stop offset="100%" stop-color="#3E060C"/>
+    </linearGradient>
+    <linearGradient id="goldedge" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F6DC93"/>
+      <stop offset="100%" stop-color="#B98422"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>
+  <ellipse cx="300" cy="480" rx="190" ry="24" fill="#2A1D16" fill-opacity="0.10"/>
+  <g transform="rotate(-12 300 300)">
+    <ellipse cx="255" cy="262" rx="135" ry="88" stroke="url(#goldedge)" stroke-width="14"/>
+    <ellipse cx="272" cy="278" rx="135" ry="88" stroke="url(#maroon)" stroke-width="13"/>
+    <ellipse cx="288" cy="294" rx="135" ry="88" stroke="url(#maroon)" stroke-width="13"/>
+    <ellipse cx="304" cy="310" rx="135" ry="88" stroke="url(#goldedge)" stroke-width="12"/>
+    <ellipse cx="320" cy="326" rx="135" ry="88" stroke="url(#maroon)" stroke-width="13"/>
+    <ellipse cx="336" cy="342" rx="135" ry="88" stroke="url(#maroon)" stroke-width="13"/>
+    <ellipse cx="352" cy="358" rx="135" ry="88" stroke="url(#goldedge)" stroke-width="14"/>
+  </g>
+</svg>
+

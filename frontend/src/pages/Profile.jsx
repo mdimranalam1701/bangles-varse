@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { FiUser, FiPhone, FiMapPin, FiSave, FiCamera, FiBriefcase, FiEdit2 } from "react-icons/fi";
+import { User, Phone, MapPin, Save, Camera, Store, Shield, Edit2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { authAPI, uploadAPI } from "../services/api";
+import { authAPI, uploadAPI, resolveAssetUrl } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { useLang } from "../context/LangContext";
 import { LoadingSpinner } from "../components/UI";
 
 export default function Profile() {
-    const { user: authUser, refreshUser } = useAuth();
+    const { refreshUser } = useAuth();
+    const { isHindi } = useLang();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -15,48 +17,46 @@ export default function Profile() {
     const [form, setForm] = useState({
         name: "",
         phone: "",
+        whatsappNumber: "",
         bio: "",
         companyName: "",
         address: "",
+        city: "",
+        pincode: "",
         profilePicture: "",
     });
 
     useEffect(() => {
-        fetchProfile();
+        authAPI
+            .getProfile()
+            .then(({ data }) => {
+                const p = data.data;
+                setProfile(p);
+                setForm({
+                    name: p.name || "",
+                    phone: p.phone || "",
+                    whatsappNumber: p.whatsappNumber || "",
+                    bio: p.bio || "",
+                    companyName: p.companyName || "",
+                    address: p.address || "",
+                    city: p.city || "",
+                    pincode: p.pincode || "",
+                    profilePicture: p.profilePicture || "",
+                });
+            })
+            .catch(() => toast.error("Failed to load profile"))
+            .finally(() => setLoading(false));
     }, []);
-
-    const fetchProfile = async () => {
-        try {
-            const { data } = await authAPI.getProfile();
-            const p = data.data;
-            setProfile(p);
-            setForm({
-                name: p.name || "",
-                phone: p.phone || "",
-                bio: p.bio || "",
-                companyName: p.companyName || "",
-                address: p.address || "",
-                profilePicture: p.profilePicture || "",
-            });
-        } catch (err) {
-            toast.error("Failed to load profile");
-        }
-        setLoading(false);
-    };
 
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
-        // Validate file type
         if (!file.type.startsWith("image/")) {
             toast.error("Please select an image file");
             return;
         }
-
-        // Validate file size (max 2MB)
-        if (file.size > 2 * 1024 * 1024) {
-            toast.error("Image must be less than 2MB");
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("Image must be under 5MB");
             return;
         }
 
@@ -66,10 +66,8 @@ export default function Profile() {
             formData.append("image", file);
             const { data } = await uploadAPI.image(formData);
             if (data.success) {
-                setForm({ ...form, profilePicture: data.url });
-                toast.success("Photo uploaded! Click Save to update.");
-            } else {
-                toast.error(data.message || "Upload failed");
+                setForm((prev) => ({ ...prev, profilePicture: data.url }));
+                toast.success("Photo uploaded! Click Save Changes.");
             }
         } catch (err) {
             toast.error(err.response?.data?.message || "Upload failed");
@@ -83,19 +81,9 @@ export default function Profile() {
         try {
             const { data } = await authAPI.updateProfile(form);
             setProfile(data.data);
-            setForm({
-                name: data.data.name || "",
-                phone: data.data.phone || "",
-                bio: data.data.bio || "",
-                companyName: data.data.companyName || "",
-                address: data.data.address || "",
-                profilePicture: data.data.profilePicture || "",
-            });
-            // Update localStorage with full profile including profilePicture
             localStorage.setItem("user", JSON.stringify(data.data));
-            // Refresh auth context so Navbar shows new profile picture
             if (refreshUser) refreshUser();
-            toast.success("Profile updated!");
+            toast.success(isHindi ? "प्रोफ़ाइल सुरक्षित की गई" : "Profile updated!");
         } catch (err) {
             toast.error(err.response?.data?.message || "Failed to update");
         }
@@ -106,161 +94,152 @@ export default function Profile() {
 
     const isOwner = profile?.role === "owner";
     const isAdmin = profile?.role === "admin";
-    const roleLabel = isAdmin ? "👑 Admin" : isOwner ? "🏪 Shop Owner" : "🛍️ Customer";
-    const roleColor = isAdmin ? "bg-red-100 text-red-700" : isOwner ? "bg-purple-100 text-purple-700" : "bg-gold-100 text-gold-700";
 
     return (
         <div className="max-w-3xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-serif font-bold text-gray-900 mb-8">My Profile</h1>
+            <h1 className="text-3xl font-serif font-bold text-ink mb-6">
+                {isHindi ? "मेरा प्रोफ़ाइल" : "My Profile"}
+            </h1>
 
-            {/* Profile Header Card */}
-            <div className="card p-6 mb-6">
-                <div className="flex flex-col sm:flex-row items-center gap-6">
-                    {/* Profile Picture with Edit Overlay */}
-                    <div className="relative group">
-                        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-white text-4xl font-bold overflow-hidden ring-4 ring-gold-100 shadow-lg">
-                            {form.profilePicture ? (
-                                <img src={form.profilePicture} alt="Profile" className="w-full h-full object-cover" />
-                            ) : (
-                                form.name?.[0]?.toUpperCase() || "U"
-                            )}
-                        </div>
-
-                        {/* Edit Icon Overlay */}
-                        <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={uploading}
-                            className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center cursor-pointer"
-                        >
-                            {uploading ? (
-                                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                                <div className="flex flex-col items-center gap-0.5">
-                                    <FiCamera size={22} className="text-white" />
-                                    <span className="text-[10px] text-white font-medium">Edit</span>
-                                </div>
-                            )}
-                        </button>
-
-                        {/* Small Edit Badge */}
-                        <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="absolute -bottom-1 -right-1 w-9 h-9 bg-gold-500 rounded-full flex items-center justify-center shadow-lg hover:bg-gold-600 transition-colors border-3 border-white"
-                        >
-                            <FiEdit2 size={14} className="text-white" />
-                        </button>
-
-                        {/* Hidden File Input */}
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleImageUpload}
-                        />
+            <div className="card p-6 mb-6 flex flex-col sm:flex-row items-center gap-6">
+                <div className="relative group">
+                    <div className="w-24 h-24 rounded-full bg-sindoor-600 text-white text-3xl font-serif font-bold flex items-center justify-center overflow-hidden ring-4 ring-linen">
+                        {form.profilePicture ? (
+                            <img src={resolveAssetUrl(form.profilePicture)} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                            form.name?.[0]?.toUpperCase() || "U"
+                        )}
                     </div>
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        aria-label="Upload profile photo"
+                        className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-ink text-white flex items-center justify-center shadow hover:bg-sindoor-600 transition-colors"
+                    >
+                        {uploading ? <Camera size={14} className="animate-pulse" /> : <Edit2 size={14} />}
+                    </button>
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                </div>
 
-                    {/* User Info */}
-                    <div className="text-center sm:text-left flex-1">
-                        <h2 className="text-xl font-serif font-semibold text-gray-800">{profile?.name}</h2>
-                        <p className="text-gray-400 text-sm">{profile?.email}</p>
-                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
-                            <span className={`badge ${roleColor}`}>{roleLabel}</span>
-                            {isOwner && (
-                                <span className={`badge ${profile?.isApproved ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
-                                    {profile?.isApproved ? "✓ Approved" : "⏳ Pending"}
-                                </span>
-                            )}
-                        </div>
-                        {isOwner && profile?.companyName && (
-                            <p className="text-sm text-gold-600 font-medium mt-1">🏢 {profile.companyName}</p>
+                <div className="text-center sm:text-left">
+                    <h2 className="text-2xl font-serif font-bold text-ink">{profile?.name}</h2>
+                    <p className="text-sm text-umber">{profile?.phone || profile?.email}</p>
+                    <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
+                        <span className="badge bg-linen text-ink border border-parchment capitalize">
+                            {isAdmin ? <Shield size={12} /> : <Store size={12} />} {profile?.role}
+                        </span>
+                        {isOwner && (
+                            <span
+                                className={`badge ${
+                                    profile?.isApproved
+                                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                        : "bg-brass-50 text-brass-700 border border-brass-200"
+                                }`}
+                            >
+                                {profile?.isApproved ? "Approved Shop" : "Pending Admin Approval"}
+                            </span>
                         )}
                     </div>
                 </div>
             </div>
 
-            {/* Edit Form */}
-            <form onSubmit={handleSubmit} className="card p-6">
-                <h3 className="font-serif font-semibold text-lg text-gray-800 mb-6">Edit Profile</h3>
-
-                <div className="grid sm:grid-cols-2 gap-5">
+            <form onSubmit={handleSubmit} className="card p-6 space-y-4">
+                <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
+                        <label className="block text-sm font-semibold text-ink mb-1">Full Name</label>
                         <div className="relative">
-                            <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-umber/60" />
                             <input
                                 type="text"
                                 value={form.name}
                                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                                 className="input-field !pl-10"
+                                required
                             />
                         </div>
                     </div>
-
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
+                        <label className="block text-sm font-semibold text-ink mb-1">Mobile Number</label>
                         <div className="relative">
-                            <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-umber/60" />
                             <input
                                 type="tel"
                                 value={form.phone}
                                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                                placeholder="+91 98765 43210"
                                 className="input-field !pl-10"
                             />
                         </div>
                     </div>
 
                     {isOwner && (
-                        <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Company / Shop Name</label>
-                            <div className="relative">
-                                <FiBriefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                        <>
+                            <div>
+                                <label className="block text-sm font-semibold text-ink mb-1">Shop / Company Name</label>
                                 <input
                                     type="text"
                                     value={form.companyName}
                                     onChange={(e) => setForm({ ...form, companyName: e.target.value })}
-                                    placeholder="Your shop name"
-                                    className="input-field !pl-10"
+                                    className="input-field"
                                 />
                             </div>
-                        </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-ink mb-1">WhatsApp Order Number</label>
+                                <input
+                                    type="tel"
+                                    value={form.whatsappNumber}
+                                    onChange={(e) => setForm({ ...form, whatsappNumber: e.target.value })}
+                                    placeholder="10-digit WhatsApp number"
+                                    className="input-field"
+                                />
+                            </div>
+                        </>
                     )}
 
                     <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Address</label>
+                        <label className="block text-sm font-semibold text-ink mb-1">Address</label>
                         <div className="relative">
-                            <FiMapPin className="absolute left-4 top-4 text-gray-400" size={16} />
+                            <MapPin size={16} className="absolute left-3.5 top-3.5 text-umber/60" />
                             <textarea
                                 value={form.address}
                                 onChange={(e) => setForm({ ...form, address: e.target.value })}
-                                placeholder="Your address"
-                                className="input-field !pl-10 min-h-[80px] resize-none"
+                                className="input-field !pl-10 min-h-[76px] resize-none"
                             />
                         </div>
                     </div>
 
-                    <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Bio</label>
-                        <textarea
-                            value={form.bio}
-                            onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                            placeholder="Tell us about yourself..."
-                            className="input-field min-h-[100px] resize-none"
+                    <div>
+                        <label className="block text-sm font-semibold text-ink mb-1">City</label>
+                        <input
+                            type="text"
+                            value={form.city}
+                            onChange={(e) => setForm({ ...form, city: e.target.value })}
+                            className="input-field"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-semibold text-ink mb-1">Pincode</label>
+                        <input
+                            type="text"
+                            value={form.pincode}
+                            onChange={(e) => setForm({ ...form, pincode: e.target.value })}
+                            className="input-field"
                         />
                     </div>
 
+                    <div className="sm:col-span-2">
+                        <label className="block text-sm font-semibold text-ink mb-1">Bio / Shop Story</label>
+                        <textarea
+                            value={form.bio}
+                            onChange={(e) => setForm({ ...form, bio: e.target.value })}
+                            className="input-field min-h-[84px] resize-none"
+                        />
+                    </div>
                 </div>
 
-                <button
-                    type="submit"
-                    disabled={saving}
-                    className="btn-primary mt-6 flex items-center gap-2"
-                >
-                    <FiSave size={16} />
-                    {saving ? "Saving..." : "Save Changes"}
+                <button type="submit" disabled={saving} className="btn-primary">
+                    <Save size={16} />
+                    {saving ? "Saving..." : isHindi ? "बदलाव सुरक्षित करें" : "Save Changes"}
                 </button>
             </form>
         </div>

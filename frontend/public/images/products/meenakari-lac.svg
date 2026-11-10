@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#FFFDF9"/>
+      <stop offset="100%" stop-color="#F2E9DC"/>
+    </radialGradient>
+    <linearGradient id="crimson" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C82838"/>
+      <stop offset="55%" stop-color="#871422"/>
+      <stop offset="100%" stop-color="#580B13"/>
+    </linearGradient>
+    <linearGradient id="emerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#228B5B"/>
+      <stop offset="100%" stop-color="#0E4B2F"/>
+    </linearGradient>
+    <linearGradient id="foil" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F7DA82"/>
+      <stop offset="100%" stop-color="#C48B22"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>
+  <ellipse cx="300" cy="480" rx="185" ry="22" fill="#2A1D16" fill-opacity="0.10"/>
+  <g transform="rotate(-18 300 300)">
+    <ellipse cx="265" cy="275" rx="132" ry="86" stroke="url(#emerald)" stroke-width="20"/>
+    <ellipse cx="265" cy="275" rx="132" ry="86" stroke="url(#foil)" stroke-width="4" stroke-dasharray="10 14"/>
+    <ellipse cx="295" cy="298" rx="132" ry="86" stroke="url(#crimson)" stroke-width="24"/>
+    <ellipse cx="295" cy="298" rx="132" ry="86" stroke="url(#foil)" stroke-width="5" stroke-dasharray="5 12"/>
+    <ellipse cx="328" cy="322" rx="132" ry="86" stroke="url(#crimson)" stroke-width="22"/>
+    <ellipse cx="328" cy="322" rx="132" ry="86" stroke="#FFF7E2" stroke-width="4" stroke-dasharray="3 17"/>
+    <ellipse cx="358" cy="345" rx="132" ry="86" stroke="url(#emerald)" stroke-width="18"/>
+  </g>
+</svg>
+

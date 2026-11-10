@@ -1,191 +1,274 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiCreditCard, FiDollarSign, FiArrowLeft } from "react-icons/fi";
+import { ArrowLeft, Banknote, CreditCard, BookOpen, CheckCircle2, Phone, MapPin, User } from "lucide-react";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { useLang } from "../context/LangContext";
 import { orderAPI, paymentAPI } from "../services/api";
 import { PriceTag } from "../components/UI";
 
 export default function Checkout() {
     const { cart, fetchCart } = useCart();
+    const { user } = useAuth();
+    const { t, isHindi, storeConfig } = useLang();
     const navigate = useNavigate();
+
+    const [customerName, setCustomerName] = useState(user?.name || "");
+    const [customerPhone, setCustomerPhone] = useState(user?.phone || "");
+    const [line1, setLine1] = useState(user?.address || "");
+    const [city, setCity] = useState(user?.city || "");
+    const [pincode, setPincode] = useState(user?.pincode || "");
     const [paymentType, setPaymentType] = useState("cash");
     const [loading, setLoading] = useState(false);
+    const [idemKey] = useState(() => `co_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+
+    useEffect(() => {
+        if (user) {
+            setCustomerName((v) => v || user.name || "");
+            setCustomerPhone((v) => v || user.phone || "");
+            setLine1((v) => v || user.address || "");
+            setCity((v) => v || user.city || "");
+            setPincode((v) => v || user.pincode || "");
+        }
+    }, [user]);
 
     const items = cart?.items || [];
-    const total = items.reduce(
-        (sum, item) => sum + (item.product?.price || 0) * item.quantity,
-        0
-    );
+    const total = items.reduce((sum, item) => sum + (item.product?.price || 0) * (item.quantity || 1), 0);
 
-    const handleCheckout = async () => {
-        if (items.length === 0) {
-            toast.error("Cart is empty");
+    if (items.length === 0) {
+        return (
+            <div className="max-w-xl mx-auto px-4 py-16 text-center">
+                <p className="text-umber mb-4">{isHindi ? "आपका बैग खाली है" : "Your bag is empty."}</p>
+                <button type="button" onClick={() => navigate("/products")} className="btn-primary">
+                    {isHindi ? "चूड़ियाँ देखें" : "Browse Bangles"}
+                </button>
+            </div>
+        );
+    }
+
+    const handleCheckout = async (e) => {
+        e.preventDefault();
+        const digits = customerPhone.replace(/\D/g, "");
+        if (digits.length !== 10) {
+            toast.error(isHindi ? "10 अंकों का मोबाइल नंबर लिखें" : "Please enter a 10-digit mobile number");
+            return;
+        }
+        if (line1.trim().length < 3) {
+            toast.error(isHindi ? "कृपया पूरा पता लिखें" : "Please enter delivery address");
             return;
         }
 
         setLoading(true);
         try {
-            // Create order
             const orderItems = items.map((item) => ({
                 product: item.product?._id,
                 quantity: item.quantity,
+                size: item.size || "2.6",
             }));
 
-            const { data: orderData } = await orderAPI.create({
-                items: orderItems,
-                paymentType,
-            });
+            const { data: orderData } = await orderAPI.create(
+                {
+                    items: orderItems,
+                    paymentType,
+                    customerName: customerName.trim(),
+                    customerPhone: digits,
+                    shippingAddress: { line1: line1.trim(), city: city.trim(), pincode: pincode.trim() },
+                },
+                idemKey
+            );
 
-            const orderId = orderData.data?._id;
+            const created = orderData.data;
 
-            if (paymentType === "cash") {
-                toast.success("Order placed successfully!");
-                await fetchCart();
-                navigate("/my-orders");
-            } else {
-                // Online payment via Razorpay
-                const { data: razorpayOrder } = await paymentAPI.createOrder({ amount: total });
-
-                const options = {
-                    key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_SmS16ISLrPkOcg",
-                    amount: razorpayOrder.data?.amount,
+            if (paymentType === "online" && storeConfig.razorpayEnabled && window.Razorpay) {
+                const { data: rzpRes } = await paymentAPI.createOrder({ orderId: created._id });
+                const rzp = new window.Razorpay({
+                    key: rzpRes.data.keyId || storeConfig.razorpayKeyId,
+                    amount: rzpRes.data.amount,
                     currency: "INR",
                     name: "Bangels Verse",
-                    description: "Order Payment",
-                    order_id: razorpayOrder.data?.id,
-                    handler: async (response) => {
+                    description: `Order ${created.orderCode}`,
+                    order_id: rzpRes.data.id,
+                    prefill: { name: customerName, email: user?.email || "", contact: digits },
+                    theme: { color: "#7C1D26" },
+                    handler: async (resp) => {
                         try {
-                            const { data: verifyData } = await paymentAPI.verify({
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                                orderId,
+                            await paymentAPI.verify({
+                                razorpay_order_id: resp.razorpay_order_id,
+                                razorpay_payment_id: resp.razorpay_payment_id,
+                                razorpay_signature: resp.razorpay_signature,
+                                orderId: created._id,
                             });
-
-                            if (verifyData.success) {
-                                toast.success("Payment successful!");
-                                await fetchCart();
-                                navigate("/my-orders");
-                            } else {
-                                toast.error("Payment verification failed");
-                            }
+                            toast.success(`Payment & Order ${created.orderCode} confirmed!`);
+                            await fetchCart();
+                            navigate("/my-orders");
                         } catch {
                             toast.error("Payment verification failed");
                         }
                     },
-                    prefill: {
-                        name: "",
-                        email: "",
-                    },
-                    theme: {
-                        color: "#f59e0b",
-                    },
-                };
-
-                if (window.Razorpay) {
-                    const rzp = new window.Razorpay(options);
-                    rzp.open();
-                } else {
-                    // Load Razorpay script dynamically
-                    const script = document.createElement("script");
-                    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-                    script.onload = () => {
-                        const rzp = new window.Razorpay(options);
-                        rzp.open();
-                    };
-                    document.body.appendChild(script);
-                }
+                });
+                rzp.open();
+                setLoading(false);
+                return;
             }
+
+            toast.success(`Order ${created.orderCode} placed!`);
+            await fetchCart();
+            navigate("/my-orders");
         } catch (err) {
             toast.error(err.response?.data?.message || "Checkout failed");
         }
         setLoading(false);
     };
 
-    if (items.length === 0) {
-        navigate("/cart");
-        return null;
-    }
-
     return (
-        <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto px-4 py-8">
             <button
-                onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-gray-500 hover:text-gold-600 mb-6 transition-colors"
+                type="button"
+                onClick={() => navigate("/cart")}
+                className="inline-flex items-center gap-2 text-sm text-umber hover:text-sindoor-700 mb-6"
             >
-                <FiArrowLeft /> Back to Cart
+                <ArrowLeft size={16} /> {isHindi ? "बैग पर वापस जाएं" : "Back to Bag"}
             </button>
 
-            <h1 className="text-3xl font-serif font-bold text-gray-900 mb-8">Checkout</h1>
+            <h1 className="text-3xl font-serif font-bold text-ink mb-6">
+                {isHindi ? "डिलीवरी और भुगतान" : "Delivery & Checkout"}
+            </h1>
 
-            {/* Order Items */}
-            <div className="card p-6 mb-6">
-                <h3 className="font-serif font-semibold text-gray-800 mb-4">Order Items</h3>
-                <div className="space-y-3">
-                    {items.map((item) => (
-                        <div key={item._id || item.product?._id} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
-                            <div>
-                                <p className="font-medium text-gray-700">{item.product?.name}</p>
-                                <p className="text-sm text-gray-400">Qty: {item.quantity}</p>
+            <form onSubmit={handleCheckout} className="space-y-6">
+                {/* Address */}
+                <div className="card p-6 space-y-4">
+                    <h2 className="font-serif font-bold text-xl text-ink">
+                        {isHindi ? "1. कहाँ भेजना है?" : "1. Where should we deliver?"}
+                    </h2>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-ink mb-1">{t("yourName")} *</label>
+                            <div className="relative">
+                                <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-umber/60" />
+                                <input
+                                    type="text"
+                                    value={customerName}
+                                    onChange={(e) => setCustomerName(e.target.value)}
+                                    className="input-field !pl-10"
+                                    required
+                                />
                             </div>
-                            <PriceTag amount={(item.product?.price || 0) * item.quantity} />
                         </div>
-                    ))}
+                        <div>
+                            <label className="block text-sm font-semibold text-ink mb-1">{t("mobileNumber")} *</label>
+                            <div className="relative">
+                                <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-umber/60" />
+                                <input
+                                    type="tel"
+                                    value={customerPhone}
+                                    onChange={(e) => setCustomerPhone(e.target.value)}
+                                    placeholder="9876543210"
+                                    className="input-field !pl-10"
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <div className="sm:col-span-2">
+                            <label className="block text-sm font-semibold text-ink mb-1">{t("deliveryAddress")} *</label>
+                            <div className="relative">
+                                <MapPin size={16} className="absolute left-3.5 top-3.5 text-umber/60" />
+                                <input
+                                    type="text"
+                                    value={line1}
+                                    onChange={(e) => setLine1(e.target.value)}
+                                    placeholder={isHindi ? "मकान नं, गली, मोहल्ला या गाँव" : "House no, street, landmark, village"}
+                                    className="input-field !pl-10"
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-ink mb-1">{t("cityLabel")}</label>
+                            <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="input-field" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-ink mb-1">{t("pincodeLabel")}</label>
+                            <input type="text" value={pincode} onChange={(e) => setPincode(e.target.value)} className="input-field" />
+                        </div>
+                    </div>
                 </div>
-                <div className="border-t border-gray-100 mt-4 pt-4 flex justify-between">
-                    <span className="font-semibold text-lg">Total</span>
-                    <PriceTag amount={total} className="text-xl" />
-                </div>
-            </div>
 
-            {/* Payment Method */}
-            <div className="card p-6 mb-6">
-                <h3 className="font-serif font-semibold text-gray-800 mb-4">Payment Method</h3>
-                <div className="grid grid-cols-2 gap-3">
-                    <button
-                        onClick={() => setPaymentType("cash")}
-                        className={`p-4 rounded-xl border-2 text-center transition-all ${paymentType === "cash"
-                            ? "border-gold-500 bg-gold-50"
-                            : "border-gray-200 hover:border-gold-300"
-                            }`}
-                    >
-                        <FiDollarSign size={24} className={`mx-auto mb-2 ${paymentType === "cash" ? "text-gold-600" : "text-gray-400"}`} />
-                        <span className={`font-medium ${paymentType === "cash" ? "text-gold-700" : "text-gray-600"}`}>
-                            Cash on Delivery
-                        </span>
-                    </button>
-                    <button
-                        onClick={() => setPaymentType("credit")}
-                        className={`p-4 rounded-xl border-2 text-center transition-all ${paymentType === "credit"
-                            ? "border-gold-500 bg-gold-50"
-                            : "border-gray-200 hover:border-gold-300"
-                            }`}
-                    >
-                        <FiCreditCard size={24} className={`mx-auto mb-2 ${paymentType === "credit" ? "text-gold-600" : "text-gray-400"}`} />
-                        <span className={`font-medium ${paymentType === "credit" ? "text-gold-700" : "text-gray-600"}`}>
-                            Pay Online
-                        </span>
-                    </button>
+                {/* Items Summary */}
+                <div className="card p-6">
+                    <h2 className="font-serif font-bold text-xl text-ink mb-3">
+                        {isHindi ? "2. चुनी हुई चूड़ियाँ" : "2. Your Bangles"}
+                    </h2>
+                    <div className="divide-y divide-parchment/70">
+                        {items.map((item) => (
+                            <div key={`${item.product?._id}-${item.size}`} className="py-2.5 flex justify-between items-center text-sm">
+                                <div>
+                                    <p className="font-semibold text-ink">{item.product?.name}</p>
+                                    <p className="text-xs text-umber">
+                                        Size {item.size || "2.6"} × {item.quantity}
+                                    </p>
+                                </div>
+                                <PriceTag amount={(item.product?.price || 0) * item.quantity} />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="border-t border-parchment mt-3 pt-3 flex justify-between items-baseline">
+                        <span className="font-bold text-ink">{isHindi ? "कुल राशि" : "Total Payable"}</span>
+                        <PriceTag amount={total} className="text-xl" />
+                    </div>
                 </div>
-                {paymentType === "credit" && (
-                    <p className="text-sm text-gray-400 mt-3">
-                        💡 You'll be redirected to Razorpay for secure payment.
-                    </p>
-                )}
-            </div>
 
-            <button
-                onClick={handleCheckout}
-                disabled={loading}
-                className="btn-primary w-full text-lg"
-            >
-                {loading
-                    ? "Processing..."
-                    : paymentType === "cash"
-                        ? `Place Order — ₹${total.toLocaleString("en-IN")}`
-                        : `Pay ₹${total.toLocaleString("en-IN")}`}
-            </button>
+                {/* Payment Options */}
+                <div className="card p-6 space-y-3">
+                    <h2 className="font-serif font-bold text-xl text-ink">
+                        {isHindi ? "3. पैसे कैसे देंगे?" : "3. Payment Method"}
+                    </h2>
+                    <div className="grid sm:grid-cols-3 gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setPaymentType("cash")}
+                            className={`p-4 rounded-xl border text-left transition-colors ${
+                                paymentType === "cash" ? "border-sindoor-600 bg-sindoor-50/70" : "border-parchment bg-white"
+                            }`}
+                        >
+                            <Banknote size={22} className="text-sindoor-600 mb-2" />
+                            <p className="font-bold text-sm text-ink">{t("codTitle")}</p>
+                            <p className="text-xs text-umber mt-0.5">{t("codDesc")}</p>
+                        </button>
+
+                        {storeConfig.razorpayEnabled && (
+                            <button
+                                type="button"
+                                onClick={() => setPaymentType("online")}
+                                className={`p-4 rounded-xl border text-left transition-colors ${
+                                    paymentType === "online" ? "border-sindoor-600 bg-sindoor-50/70" : "border-parchment bg-white"
+                                }`}
+                            >
+                                <CreditCard size={22} className="text-sindoor-600 mb-2" />
+                                <p className="font-bold text-sm text-ink">{t("onlineTitle")}</p>
+                                <p className="text-xs text-umber mt-0.5">{t("onlineDesc")}</p>
+                            </button>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={() => setPaymentType("credit")}
+                            className={`p-4 rounded-xl border text-left transition-colors ${
+                                paymentType === "credit" ? "border-sindoor-600 bg-sindoor-50/70" : "border-parchment bg-white"
+                            }`}
+                        >
+                            <BookOpen size={22} className="text-brass-600 mb-2" />
+                            <p className="font-bold text-sm text-ink">{t("khataTitle")}</p>
+                            <p className="text-xs text-umber mt-0.5">{t("khataDesc")}</p>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" disabled={loading} className="btn-primary w-full text-base py-4">
+                    <CheckCircle2 size={18} />
+                    {loading ? t("placingOrder") : `${t("confirmOrder")} — ₹${total.toLocaleString("en-IN")}`}
+                </button>
+            </form>
         </div>
     );
 }
